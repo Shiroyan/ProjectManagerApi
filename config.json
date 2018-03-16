@@ -1,0 +1,7 @@
+{
+  "dbHost": "localhost",
+  "dbUser": "root",
+  "dbPwd": "3208",
+  "dbName": "projectmanager",
+  "secrect": "20170613"
+}

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>注册</title>
+  <style>
+    input {
+      display: block;
+      margin-bottom: 10px;
+      padding: 8px;
+    }
+  </style>
+</head>
+
+<body>
+  <form action="/users/register" method="post">
+    <input type="text" name="account" placeholder="账户">
+    <input type="password" name="password" id="pwd" placeholder="密码">
+    <input type="text" name="username" id="un" placeholder="用户名">
+    <select name="city" id="city">
+      <option value="0">深圳</option>
+      <option value="1">广州</option>
+    </select>
+    <select name="department" id="department">
+      <option value="1">开发</option>
+      <option value="2">产品</option>
+    </select>
+    <select name="job" id="job">
+      <option value="1">Java</option>
+      <option value="2">Web</option>
+    </select>
+    <input type="submit" value="注册">
+  </form>
+  <br />
+  <br />
+  <br />
+  <br />
+
+  <form action="/users/login" method="POST">
+    <input type="text" name="account" id="account">
+    <input type="password" name="password" id="password">
+    <input type="submit" value="登录">
+  </form>
+
+  <br />
+  <br />
+  <br />
+  <br />
+
+  <form action="/users/logout" method="POST">
+    <input type="submit" value="注销">
+  </form>
+
+  <form action="/users/autologin" method="POST">
+    <input type="submit" value="自动登录">
+  </form>
+
+  <div id="project">
+    <input type="text" name="p-name" id="p-name">
+    <input type="text" name="first-party" id="first-party">
+    <input type="file" name="contract" id="contract">
+    <input type="date" id="start-time">
+    <input type="date" id="end-time">
+    <input type="submit" value="创建" id="p-create">
+  </div>
+
+  <a href="/statistics/excel/plan">下载Excel</a>
+</body>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+  function $(id) {
+    return document.querySelector(id);
+  }
+
+  function createProject() {
+    let name = $('#p-name').value,
+      firstParty = $('#first-party').value,
+      contract = $('#contract').files[0],
+      startTime = $('#start-time').value,
+      endTime = $('#end-time').value;
+    var form = new FormData();
+    form.append('name', name);
+    form.append('firstParty', firstParty);
+    form.append('contract', contract);
+    form.append('startTime', startTime);
+    form.append('endTime', endTime);
+    form.append('members', [1,3,3,45]);
+    console.log(form);
+    // axios({
+    //   method: 'post',
+    //   url: '/projects',
+    //   headers: {
+    //     'Content-type': 'multipart/form-data'
+    //   },
+    //   data: {
+    //     name,
+    //     firstParty,
+    //     startTime,
+    //     endTime,
+    //     contract,
+    //     members: [1, 2, 3, 4]
+    //   }
+    // })
+    axios.post('/projects/', form)
+      .then((data) => {
+        console.log(data);
+      }).catch(err => {
+        console.log(err);
+      });
+  }
+  $('#p-create').addEventListener('click', createProject);
+
+</script>
+
+</html>
