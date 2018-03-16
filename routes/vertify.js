@@ -48,6 +48,13 @@ async function hasToken(req, res, next) {
   }
 }
 
+function isAdmin (req, res, next) {
+  if (req.role !== 0) {
+    return new next(new ResponseError('没有权限', 403));
+  }
+  next();
+}
+
 function isPM(req, res, next) {
   if (req.role !== 0 && req.role !== 1) {
     return next(new ResponseError('没有权限', 403));
@@ -122,6 +129,7 @@ async function isEventExist(req, res, next) {
 
 module.exports = {
   hasToken,
+  isAdmin,
   isPM,
   isOnDuty,
   isPlanExist,

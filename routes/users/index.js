@@ -3,13 +3,13 @@ let createConnection = require('../../utils/create-connection');
 let query = require('../../utils/query');
 let config = require('../../config');
 let validate = require('../../utils/validate');
-
+let { isAdmin } = require('../vertify');
 
 let register = require('./register');
 let login = require('./login');
 let autoLogin = require('./auto-login');
 let logout = require('./logout');
-let { getProfile, updateProfile } = require('./profile');
+let { getProfile, updateProfile, updateProfileByAdmin } = require('./profile');
 let { changePwdByUser, changePwdByAdmin } = require('./password');
 let options = require('./options');
 let { divideUsersByDep, divideUsersByJob } = require('./departments');
@@ -23,26 +23,22 @@ async function deleteUser(req, res, next) {
 
   //  校验uid是否正确
   let error = validate(new Map([
-    ['role', deleteId]
+    ['uid', deleteId]
   ]));
   if (error) {
     return next(error);
   }
 
-  if (req.role !== 0) {
-    return next(new ResponseError('权限不足', 403));
-  } else {
-    try {
-      let connection = createConnection();
-      connection.connect();
+  try {
+    let connection = createConnection();
+    connection.connect();
 
-      await query.delete(connection, 'users', 'id', deleteId);
+    await query.delete(connection, 'users', 'id', deleteId);
 
-      connection.end();
+    connection.end();
 
-    } catch (err) {
-      next(err);
-    }
+  } catch (err) {
+    next(err);
   }
 
   res.status(200).json({
@@ -82,12 +78,13 @@ router.get('/departments/:depId', divideUsersByJob);
 router.post('/logout', logout);
 router.get('/options', options);
 router.put('/password', changePwdByUser);
-router.put('/password/:uid', changePwdByAdmin);
+// router.put('/password/:uid', [isAdmin, changePwdByAdmin]);
 router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
+router.put('/profile/:uid', [isAdmin, updateProfileByAdmin]);
+router.put('/profile/:uid')
 router.post('/register', register);
-
-router.delete('/:uid', deleteUser);
+router.delete('/:uid', [isAdmin, deleteUser]);
 router.get('/', getUsersList);
 
 

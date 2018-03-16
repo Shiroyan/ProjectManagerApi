@@ -45,39 +45,37 @@ async function changePwdByUser(req, res, next) {
   }
 }
 
+//  已废弃
 async function changePwdByAdmin(req, res, next) {
   let changeId = +req.params.uid;
   let id = req.id;
   let newPwd = req.body.newPwd;
 
-  if (req.role !== 0) {
-    return new next(new ResponseError('没有权限', 403));
-  } else {
-    //  校验参数
-    let error = validate(new Map([
-      ['uid', changeId],
-      ['newPwd', newPwd]
-    ]));
-    if (error) {
-      return next(error);
-    }
-
-    try {
-      let connection = createConnection();
-      let affectedRow = await query.update(connection, 'users', {
-        password: newPwd
-      }, 'id', changeId);
-      
-      connection.end();
-
-      res.status(200).json({
-        msg: '修改成功'
-      });
-
-    } catch (err) {
-      next(err);
-    }
+  //  校验参数
+  let error = validate(new Map([
+    ['uid', changeId],
+    ['newPwd', newPwd]
+  ]));
+  if (error) {
+    return next(error);
   }
+
+  try {
+    let connection = createConnection();
+    let affectedRow = await query.update(connection, 'users', {
+      password: newPwd
+    }, 'id', changeId);
+
+    connection.end();
+
+    res.status(200).json({
+      msg: '修改成功'
+    });
+
+  } catch (err) {
+    next(err);
+  }
+
 }
 
 

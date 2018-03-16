@@ -69,7 +69,7 @@ module.exports = {
       connection.query(sql, data, (err, rs, fields) => {
         err && reject(err);
 
-        let affectedRows = rs.affectedRows;
+        let affectedRows = rs ? rs.affectedRows : 0;
         if (affectedRows > 0) {
           resolve(rs.affectedRows);
         } else {
@@ -106,7 +106,7 @@ module.exports = {
       connection.query(sql, (err, rs, fields) => {
         err && reject(err);
 
-        let affectedRows = rs.affectedRows;
+        let affectedRows = rs ? rs.affectedRows : 0;
         if (affectedRows > 0) {
           resolve(rs.affectedRows);
         } else {

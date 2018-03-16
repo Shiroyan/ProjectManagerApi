@@ -25,21 +25,16 @@ async function divideUsersByDep(req, res, next) {
     groups.forEach((group, index) => {
       let users = [];
       group.forEach(user => {
-        users.push({
-          id: user.id,
-          username: user.username,
-          dep: user.depName,
-          city: user.cityName,
-          job: user.jobName
-        });
+        let { id, username, depId, depName, cityId, cityName, jobId, jobName } = user;
+        users.push({ id, username, depId, depName, cityId, cityName, jobId, jobName });
       });
       data.push({
-        dep: deps[index].name,
+        name: deps[index].name,
         users
       });
     });
     connection.end();
-    res.status(200).json(data);
+    res.status(200).json({ deps: data });
 
   } catch (err) {
     next(err);
