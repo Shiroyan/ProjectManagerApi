@@ -4,6 +4,7 @@ var favicon = require('serve-favicon');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var chalk = require('chalk');
+var cors = require('cors');
 
 
 var logger = require('./utils/logger');
@@ -54,6 +55,19 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.all('*', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin);
+  res.header('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type');
+  res.header('Access-Control-Allow-Methods', 'PUT,POST,GET,DELETE,OPTIONS');
+  res.header('Access-Control-Max-Age', '3600');
+  res.header('Access-Control-Allow-Credentials', true);
+  if (req.method.toLowerCase() === 'options') {
+    res.send(200).end();
+  } else {
+    next();
+  }
+});
+// app.use(cors());
 app.use('/', index);
 app.use('/', hasToken);
 app.use('/users', users);
@@ -81,6 +95,7 @@ app.use(function (err, req, res, next) {
   // render the error page
   switch (err.status) {
     case 401:
+      res.clearCookie('token');
     case 403:
     case 406:
       res.status(err.status).json({
@@ -88,8 +103,14 @@ app.use(function (err, req, res, next) {
       });
       break;
     case 404:
+      res.status(err.status).json({
+        error: '接口不存在，路径出错'
+      });
     default:
-      res.render('error');
+      res.status(500).json({
+        error: '未知错误',
+        stack: error.stack
+      });
   }
 });
 

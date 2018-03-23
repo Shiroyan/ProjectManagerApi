@@ -9,7 +9,7 @@ const SECRECT = config.secrect;
  * 检验请求中cookie是否包含token ,且token是否合法
  */
 async function hasToken(req, res, next) {
-  let reg = /(\/login)|(\/register)|(\/password$)/; //  无需检验token的接口
+  let reg = /(\/login)|(\/logout)|(\/register)|(\/options)|(\/password$)/; //  无需检验token的接口
   let reg2 = /\.(js|css|html|jpg|ico|txt)$/;  //  静态文件无需检验token
   let path = req.path;
   if (reg.test(path) || reg2.test(path)) {

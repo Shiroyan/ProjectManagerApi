@@ -14,13 +14,11 @@ async function getProfile(req, res, next) {
     let rs = (await query.all(connection, 'users', 'id', req.id))[0];
 
     connection.end();
+    let { username, cityId, cityName, depId, depName, jobId, jobName } = rs;
+    let role = rs.roleId;
     res.status(200).json({
       id: rs.id,
-      username: rs.username,
-      city: rs.cityName,
-      dep: rs.depName,
-      job: rs.jobName,
-      role: rs.roleId
+      username, cityId, cityName, depId, depName, jobId, jobName, role
     });
   } catch (err) {
     next(err);
@@ -35,7 +33,7 @@ async function updateProfile(req, res, next) {
   let b = req.body;
   let username = b.username,
     cityId = +b.city,
-    depId = +b.department,
+    depId = +b.dep,
     jobId = +b.job;
 
   //  校验参数类型、格式是否满足约束

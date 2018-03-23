@@ -6,24 +6,20 @@ let config = require('../../config');
 
 
 async function autoLogin(req, res, next) {
-  console.log('autologin');
   try {
     let connection = createConnection();
 
     let rs = (await query.all(connection, 'users', 'id', req.id))[0];
 
     connection.end();
+    let { username, cityId, cityName, depId, depName, jobId, jobName } = rs;
+    let role = rs.roleId;
     res.status(200).json({
       msg: '登陆成功',
-      data: {
-        username: rs.username,
-        city: rs.cityName,
-        dep: rs.depName,
-        job: rs.jobName,
-        role: rs.roleId,
-      }
+      userId: req.id,
+      username, cityId, cityName, depId, depName, jobId, jobName, role
     });
-  } catch(err) {
+  } catch (err) {
     next(err);
   }
 }

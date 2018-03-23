@@ -44,8 +44,8 @@ async function getProjectsAbstract(req, res, next) {
       projects.push({
         id,
         name,
-        startTime,
-        endTime,
+        startTime: startTime.format('yyyy-MM-dd'),
+        endTime: endTime.format('yyyy-MM-dd'),
         process,
         stage: stageName,
         leader: leaderName,

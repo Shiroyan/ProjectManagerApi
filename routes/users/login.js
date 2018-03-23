@@ -16,7 +16,8 @@ const SECRECT = config.secrect;
 async function login(req, res, next) {
 
   let ac = req.body.account,
-    pwd = req.body.password;
+    pwd = req.body.password,
+    autoLogin = req.body.autoLogin;
 
   //  校验参数类型、格式是否满足约束
   let error = validate(new Map([
@@ -26,7 +27,6 @@ async function login(req, res, next) {
   if (error) {
     return next(error);
   }
-
 
   let connection = createConnection();
 
@@ -51,24 +51,21 @@ async function login(req, res, next) {
     next(err);
   }
 
-
   let token = jwt.sign({
     id: rs.id
   }, SECRECT);
 
+  let day = autoLogin === 'false' ? 0.1 : 15;
   res.cookie('token', token, {
-    expires: new Date(Date.now() + 15 * 24 * 3600 * 1000),
-    httpOnly: true
+    expires: new Date(Date.now() + day * 24 * 3600 * 1000),
+    httpOnly: true,
   });
+  let { username, cityId, cityName, depId, depName, jobId, jobName } = rs;
+  let role = rs.roleId;
   res.status(200).json({
     msg: '登陆成功',
-    user: {
-      name: rs.username,
-      city: rs.cityName,
-      dep: rs.depName,
-      job: rs.jobName,
-      role: rs.roleId,
-    }
+    userId: rs.id,
+    username, cityId, cityName, depId, depName, jobId, jobName, role
   });
 }
 
