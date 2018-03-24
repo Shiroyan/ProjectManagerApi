@@ -16,7 +16,8 @@ async function getOptions(req, res, next) {
     let deps = rs[0],
       jobs = rs[1],
       citys = rs[2];
-    
+
+    connection.end();
     res.status(200).json({
       deps,
       jobs,

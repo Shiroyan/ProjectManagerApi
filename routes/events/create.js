@@ -45,15 +45,14 @@ async function createEvent(req, res, next) {
 
 
     //  根据传入的userid数组，找出它们的username
-    let rs = await query.sql(connection, `select id, username from users where id in (${members.join(',')})`);
+    let rs = await query.sql(connection, `select id, username, jobId from users where id in (${members.join(',')})`);
     //  写入users_events
     let data = [];
     members = [];
-    rs.forEach(temp => {
-      let { id, username } = temp;
+    rs.forEach(({id, username, jobId}) => {
       data.push(`(${id}, "${username}", ${eventId})`);
       //  把参与用户的信息，转成数组，再转成JSON存入数据库
-      members.push({ id, username });
+      members.push({ id, username, jobId });
     });
     await query.inserts(connection, 'users_events', data.join(','));
 

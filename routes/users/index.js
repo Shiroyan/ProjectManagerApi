@@ -54,16 +54,13 @@ async function getUsersList(req, res, next) {
     let rs = await query.view(connection, 'USER_PROFILE');
     connection.end();
 
-    let users = [];
-    rs.forEach((ele) => {
-      users.push({
-        username: ele.username,
-        id: ele.id
-      })
-    });
-    res.status(200).json({
-      users
-    }).end();
+    let users = rs.length > 0 ? rs.map(({ id, username, cityId, cityName, depId, depName, jobId, jobName }) => {
+      return {
+        id, username, cityId, cityName, depId, depName, jobId, jobName
+      };
+    }) : [];
+ 
+    res.status(200).json(users).end();
 
   } catch (err) {
     next(err);

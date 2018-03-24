@@ -8,6 +8,8 @@ let deleteProject = require('./delete');
 let getProjectsAbstract = require('./abstract');
 let getProjectsDetail = require('./detail');
 let downloadContract = require('./download');
+let getStages = require('./stages');
+
 let { isPM, isOnDuty } = require('../vertify');
 
 const UPLOAD_PATH = '/contracts';
@@ -28,6 +30,10 @@ let upload = multer({
   storage,
   fileFilter(req, file, cb) {
     let filename = file.originalname;
+    let size = file.size;
+    if (file.size >  2 * 1024 * 1024) {// 20M 
+      cb(new ResponseError('文件过大, 已超过20M', 406));
+    }
     let reg = /\.(doc|docx)$/;
     if (reg.test(filename)) {
       cb(null, true);
@@ -39,6 +45,7 @@ let upload = multer({
 
 router.post('/', [isPM, upload.single('contract'), createProject]);
 router.put('/:projectId', [isPM, isOnDuty, upload.single('contract'), updateProject]);
+router.get('/options', getStages);
 router.delete('/:projectId', [isPM, isOnDuty, deleteProject]);
 router.get('/', getProjectsAbstract);
 router.get('/:projectId', getProjectsDetail);

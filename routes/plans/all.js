@@ -28,15 +28,16 @@ async function getAllPlans(req, res, next) {
         delete event.belongTo;
         event.tags = JSON.parse(event.tags);
         event.members = JSON.parse(event.members);
+        event.startTime = event.startTime.format('yyyy-MM-dd hh:mm:ss');
+        event.endTime = event.endTime.format('yyyy-MM-dd hh:mm:ss');
+        event.finishAt && (event.finishAt = event.finishAt.format('yyyy-MM-dd hh:mm:ss'));
         temp.events.push(event);
       })
       data.push(temp);
     }
 
     connection.end();
-    res.status(200).json({
-      plans: data
-    });
+    res.status(200).json(data);
 
   } catch (err) {
     return next(err);

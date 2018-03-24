@@ -29,35 +29,29 @@ async function getProjectsDetail(req, res, next) {
     //  组织需要返回的数据
     let members = [];
     let leader;
-    rs.forEach(user => {
-      let temp = {
-        username: user.username,
-        dep: user.depName,
-        job: user.jobName,
-        city: user.cityName
-      };
-      user.id === leaderId ? (leader = temp) : members.push(temp);
+    rs.forEach(({ id, username, cityId, cityName, depId, depName, jobId, jobName }) => {
+      let temp = { id, username, cityId, cityName, depId, depName, jobId, jobName };
+      id === leaderId ? (leader = temp) : members.push(temp);
     });
     //  生成合同下载url
     let contract = `/projects/contracts/${project.id}`;
 
-    let { id, name, startTime, endTime, firstParty, contractVal, stageName, process } = project;
+    let { id, name, startTime, endTime, firstParty, contractVal, stageId, stageName, process } = project;
 
     connection.end();
     res.status(200).json({
-      project: {
-        id,
-        name,
-        startTime,
-        endTime,
-        firstParty,
-        contractVal: +contractVal,
-        stage: stageName,
-        process,
-        leader,
-        members,
-        contract
-      }
+      id,
+      name,
+      startTime: startTime.format('yyyy-MM-dd hh:mm:ss'),
+      endTime: endTime.format('yyyy-MM-dd hh:mm:ss'),
+      firstParty,
+      contractVal: +contractVal,
+      stageId,
+      stageName,
+      process,
+      leader,
+      members,
+      contract
     });
   } catch (err) {
     return next(err);

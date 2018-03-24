@@ -51,11 +51,10 @@ async function updateEvent(req, res, next) {
     //  写入users_events
     let data = [];
     members = [];
-    rs.forEach(temp => {
-      let { id, username } = temp;
+    rs.forEach(({ id, username, jobId }) => {
       data.push(`(${id}, "${username}", ${eventId})`);
       //  把参与用户的信息，转成数组，再转成JSON存入数据库
-      members.push({ id, username });
+      members.push({ id, username, jobId });
     });
     members = JSON.stringify(members);
     if (old.members !== members) {
@@ -112,7 +111,7 @@ async function updateEvent(req, res, next) {
       approval = approval + ${old.approval}
       where userId in (${addMembers.join(',')})
       and ('${startTime}' between startTime and endTime and '${endTime}' between startTime and endTime)`;
-      await query.sql(connection, sql);      
+      await query.sql(connection, sql);
     }
 
     let sql = `update statistics set
