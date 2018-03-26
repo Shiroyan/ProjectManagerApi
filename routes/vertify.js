@@ -48,7 +48,7 @@ async function hasToken(req, res, next) {
   }
 }
 
-function isAdmin (req, res, next) {
+function isAdmin(req, res, next) {
   if (req.role !== 0) {
     return new next(new ResponseError('没有权限', 403));
   }
@@ -66,65 +66,86 @@ function isPM(req, res, next) {
  * 判断PM与Project的关系， 避免PM越权
 */
 async function isOnDuty(req, res, next) {
-  let projectId = +req.params.projectId || +req.body.projectId || +req.query.projectId;
+  try {
+    let projectId = +req.params.projectId || +req.body.projectId || +req.query.projectId;
 
-  let connection = createConnection();
-  connection.connect();
-
-  //  是否存在该项目
-  let rs = (await query.all(connection, 'projects', 'id', projectId))[0];
-  connection.end();
-
-  if (rs) {
-    //  管理员
-    if (req.role === 0) {
-      return next();
+    if (Number.isNaN(projectId)) {
+      return next(new ResponseError('缺少参数', 406));
     }
-    //  检验PM是否负责该项目
-    if (rs.leaderId !== req.id) {
-      return next(new ResponseError('你并没有负责该项目， 故无权修改该项目', 403));
+    let connection = createConnection();
+    connection.connect();
+
+    //  是否存在该项目
+    let rs = (await query.all(connection, 'projects', 'id', projectId))[0];
+    connection.end();
+
+    if (rs) {
+      //  管理员
+      if (req.role === 0) {
+        return next();
+      }
+      //  检验PM是否负责该项目
+      if (rs.leaderId !== req.id) {
+        return next(new ResponseError('你并没有负责该项目， 故无权修改该项目', 403));
+      }
+    } else {
+      return next(new ResponseError('该项目不存在', 406));
     }
-  } else {
-    return next(new ResponseError('该项目不存在', 406));
+    next();
+  } catch (err) {
+    next(err);
   }
-  next();
 }
 
 /** 
  * 判断Plan与Project的归属关系， 避免PM越权
 */
 async function isPlanExist(req, res, next) {
-  let projectId = +req.params.projectId || +req.body.projectId || +req.query.projectId;
-  let planId = +req.params.planId || +req.body.planId;
+  try {
+    let projectId = +req.params.projectId || +req.body.projectId || +req.query.projectId;
+    let planId = +req.params.planId || +req.body.planId;
 
-  let connection = createConnection();
-  connection.connect();
+    if (Number.isNaN(projectId) || Number.isNaN(planId)) {
+      return next(new ResponseError('缺少参数', 406));
+    }
+    let connection = createConnection();
+    connection.connect();
 
-  let rs = (await query.sql(connection, 
-    `select * from plans where id = ${planId} and belongTo = ${projectId}`))[0];
-  
-  connection.end();
-  if (!rs) {
-    return next(new ResponseError('计划不存在', 406));
+    let rs = (await query.sql(connection,
+      `select * from plans where id = ${planId} and belongTo = ${projectId}`))[0];
+
+    connection.end();
+    if (!rs) {
+      return next(new ResponseError('计划不存在', 406));
+    }
+    next();
+  } catch (err) {
+    next(err);
   }
-  next();
 }
 
 async function isEventExist(req, res, next) {
-  let planId = +req.body.planId;
-  let eventId = +req.params.eventId;
+  try {
+    let planId = +req.body.planId;
+    let eventId = +req.params.eventId;
 
-  let connection = createConnection();
-  connection.connect();
+    if (Number.isNaN(planId) || Number.isNaN(eventId)) {
+      return next(new ResponseError('缺少参数', 406));
+    }
+    let connection = createConnection();
+    connection.connect();
 
-  let rs = (await query.sql(connection, 
-    `select * from events where id = ${eventId} and belongTo = ${planId}`))[0];
-  
-  connection.end();
-  if (!rs) {
-    return next(new ResponseError('事件不存在', 406));
+    let rs = (await query.sql(connection,
+      `select * from events where id = ${eventId} and belongTo = ${planId}`))[0];
+
+    connection.end();
+    if (!rs) {
+      return next(new ResponseError('事件不存在', 406));
+    }
+    next();
+  } catch (err) {
+    next(err);
   }
-  next();
 }
 
 module.exports = {

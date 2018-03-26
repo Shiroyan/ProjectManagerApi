@@ -5,7 +5,7 @@ let { getTags, addTag } = require('./tags');
 let createEvent = require('./create');
 let updateEvent = require('./update');
 let finishEvent = require('./finish');
-let deleteEvent = require('./delete');
+let { deleteEvent } = require('./delete');
 
 router.get('/tags', getTags);
 router.post('/tags', [isPM, addTag]);

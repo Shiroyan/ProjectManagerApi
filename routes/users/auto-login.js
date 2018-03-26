@@ -8,8 +8,9 @@ let config = require('../../config');
 async function autoLogin(req, res, next) {
   try {
     let connection = createConnection();
-
-    let rs = (await query.all(connection, 'users', 'id', req.id))[0];
+    let sql = `SELECT id,username,password,cityId,cityName,depId,depName,jobId,jobName,roleId FROM users WHERE id = ${req.id} and isDeleted = 0`;
+    
+    let rs = (await query.sql(connection, sql))[0];
 
     connection.end();
     let { username, cityId, cityName, depId, depName, jobId, jobName } = rs;

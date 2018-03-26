@@ -58,7 +58,7 @@ async function getRealReport(req, res, next) {
     //#endregion    
 
     //#region 查找 可用工时/计划时间/忙闲时间/核准时间/效率/实际、计划偏差值
-    let sql = `select * from statistics 
+    let sql = `select avaTime,planTime,approval,busyTime,planOffset,realOffset,effect from statistics 
     where userId = ${userId} 
     and ('${startTime}' between startTime and endTime
     and '${endTime}' between startTime and endTime)`;
@@ -77,8 +77,9 @@ async function getRealReport(req, res, next) {
     //#endregion
 
     //#region 查找用户参与的所有事件, 并找出它们参与的所有项目， 项目占用工时
-    sql = `select * from events 
-    where id in (select eventId from users_events where userId = ${userId})
+    sql = `select projectId,projectName,planTime from events 
+    where isDeleted = 0 AND
+    id in (select eventId from users_events where userId = ${userId})
     and (startTime between '${startTime}' and '${endTime}' and endTime between '${startTime}' and '${endTime}')`;
 
     let events = await query.sql(connection, sql);

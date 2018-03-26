@@ -19,13 +19,12 @@ async function finishEvent(req, res, next) {
     connection.connect();
 
 
-    let rs = await query.sql(connection, `select * from users_events where userId = ${+req.id} and eventId = ${eventId}`);
+    let rs = await query.sql(connection, `select eventId from users_events where userId = ${+req.id} and eventId = ${eventId}`);
     if (rs[0] || req.role === 1 || req.role === 0) {
-      await query.update(connection, 'events', {
-        isFinished
-      }, 'id', eventId);
+      await query.sql(connection,
+        `UPDATE events SET isFinished = ${isFinished} WHERE id = ${eventId} AND isDeleted = 0`);
     } else {
-      return next(new ResponseError('没有权限', 403));
+      return next(new ResponseError('没有权限/该事件已被删除', 403));
     }
 
     connection.end();

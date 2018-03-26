@@ -19,7 +19,8 @@ async function getSchedules(req, res, next) {
     id, \`desc\`, startTime, endTime, projectId, projectName 
     from events 
     where id in (select eventId from users_events where userId = ${req.id})
-    and (startTime >= ${+begin} or endTime <= ${+end})`;
+    and (startTime >= ${+begin} or endTime <= ${+end}) 
+    and isDeleted = 0`;
     let rs = await query.sql(connection, sql);
 
     connection.end();

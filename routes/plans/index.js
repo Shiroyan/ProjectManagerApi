@@ -3,7 +3,7 @@ let { isPM, isOnDuty, isPlanExist } = require('../vertify');
 
 let createPlan = require('./create');
 let updatePlan = require('./update');
-let deletePlan = require('./delete');
+let { deletePlan } = require('./delete');
 let getAllPlan = require('./all');
 
 router.post('/', [isPM, isOnDuty, createPlan]);

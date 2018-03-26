@@ -34,39 +34,44 @@ async function login(req, res, next) {
   let rs;
 
   try {
-    rs = await query.all(connection, 'users', 'account', ac);
+    let sql = `SELECT id,username,password,cityId,cityName,depId,depName,jobId,jobName,roleId FROM users WHERE account = '${ac}' and isDeleted = 0`;
+    rs = await query.sql(connection, sql);
     rs = rs[0];
-    connection.end();
 
     //  账号不存在
     if (!rs) {
       return next(new ResponseError('账号不存在', 406));
     }
 
+    let userPwd = (await query.sql(connection, `SELECT PASSWORD('${pwd}')`))[0][`PASSWORD('${pwd}')`];
+
     //  密码错误
-    if (rs.password != pwd) {
+    if (rs.password != userPwd) {
       return next(new ResponseError('密码错误', 406));
     }
+    connection.end();
+
+    let token = jwt.sign({
+      id: rs.id
+    }, SECRECT);
+
+    let day = autoLogin === 'false' ? 0.1 : 15;
+    res.cookie('token', token, {
+      expires: new Date(Date.now() + day * 24 * 3600 * 1000),
+      httpOnly: true,
+    });
+    let { username, cityId, cityName, depId, depName, jobId, jobName } = rs;
+    let role = rs.roleId;
+    res.status(200).json({
+      msg: '登陆成功',
+      userId: rs.id,
+      username, cityId, cityName, depId, depName, jobId, jobName, role
+    });
+
   } catch (err) {
     next(err);
   }
 
-  let token = jwt.sign({
-    id: rs.id
-  }, SECRECT);
-
-  let day = autoLogin === 'false' ? 0.1 : 15;
-  res.cookie('token', token, {
-    expires: new Date(Date.now() + day * 24 * 3600 * 1000),
-    httpOnly: true,
-  });
-  let { username, cityId, cityName, depId, depName, jobId, jobName } = rs;
-  let role = rs.roleId;
-  res.status(200).json({
-    msg: '登陆成功',
-    userId: rs.id,
-    username, cityId, cityName, depId, depName, jobId, jobName, role
-  });
 }
 
 

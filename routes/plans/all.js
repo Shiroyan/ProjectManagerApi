@@ -16,16 +16,18 @@ async function getAllPlans(req, res, next) {
     let connection = createConnection();
     connection.connect();
 
-    let plans = await query.all(connection, 'plans', 'belongTo', projecId);
+    let plans = await query.sql(connection, 
+      `SELECT id, name, process FROM plans WHERE belongTo = ${projecId} AND isDeleted = 0`);
     let data = [];
     let events;
     for (let i = 0; i < plans.length; i++) {
       let plan = plans[i];
       let { id, name, process } = plan;
       let temp = { id, name, process, events: [] };
-      events = await query.all(connection, 'events', 'belongTo', id);
+      events = await query.sql(connection, 
+        `SELECT id, \`desc\`, startTime, endTime, planTime, realTime, approval, ratio, process, tags, isFinished, members, finishAt 
+        FROM events WHERE belongTo = ${id} AND isDeleted = 0`);
       events.forEach(event => {
-        delete event.belongTo;
         event.tags = JSON.parse(event.tags);
         event.members = JSON.parse(event.members);
         event.startTime = event.startTime.format('yyyy-MM-dd hh:mm:ss');

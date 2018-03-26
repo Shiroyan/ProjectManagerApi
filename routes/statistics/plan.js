@@ -48,8 +48,9 @@ async function getPlanReport(req, res, next) {
 
 
     //  查找用户参与的所有事件, 并找出它们参与的所有项目， 项目占用工时
-    sql = `select * from events 
-    where id in (select eventId from users_events where userId = ${userId})
+    sql = `select projectId,projectName,planTime from events 
+    where isDeleted = 0 AND
+    id in (select eventId from users_events where userId = ${userId})
     and (startTime between '${startTime}' and '${endTime}' and endTime between '${startTime}' and '${endTime}')`;
 
     let events = await query.sql(connection, sql);

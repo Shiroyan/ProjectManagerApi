@@ -16,9 +16,11 @@ async function getProjectsDetail(req, res, next) {
     let connection = createConnection();
     connection.connect();
 
-    let project = (await query.all(connection, 'projects', 'id', projectId))[0];
+    let project = (await query.sql(connection, 
+      `SELECT id, name, leaderId, startTime, endTime, firstParty, contract, contractVal, stageId, stageName, process
+      FROM projects WHERE id = ${projectId} AND isDeleted = 0`))[0];
     if (!project) {
-      return next(new ResponseError('该项目不存在', 406));
+      return next(new ResponseError('该项目不存在/已删除', 406));
     }
 
     let { leaderId } = project;

@@ -15,7 +15,9 @@ async function getProjectsAbstract(req, res, next) {
     //  筛选出该用户参与的所有项目的id
     //  根据项目id， 查询出相应阶段的项目
  
-    let sql = `select * from projects where id in (select projectId from users_projects where userId = ${req.id}) `;
+    let sql = `SELECT id, name, startTime, endTime, members, leaderName, stageName, process 
+    FROM projects WHERE id in (SELECT projectId FROM users_projects WHERE userId = ${req.id})
+    AND isDeleted = 0 `;
 
     let conds;
     //  关于stageId
@@ -53,7 +55,7 @@ async function getProjectsAbstract(req, res, next) {
       });
     });
     connection.end();
-    res.status(200).json({ projects });
+    res.status(200).json(projects);
 
   } catch (err) {
     return next(err);

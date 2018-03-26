@@ -13,7 +13,7 @@ schedule.scheduleJob('0 0 0 * * 1', async function () {
     let connection = createConnection();
     connection.connect();
 
-    let rs = await query.sql(connection, `select id from users`);
+    let rs = await query.sql(connection, `select id from users where isDeleted = 0`);
     let startTime = Date.getWeekStart().format('yyyy-MM-dd');
     let endTime = Date.getWeekEnd().format('yyyy-MM-dd');
 
@@ -47,9 +47,9 @@ async function stateChange(req, res, next) {
 
     let rs = await query.multi(connection, [
       `select username from users where createAt between '${startTime}' and '${endTime}'`,
-      `select username from users_deleted where deleteAt between '${startTime}' and '${endTime}'`,
+      `select username from users where deletedAt between '${startTime}' and '${endTime}'`,
       `select name from projects where createAt between '${startTime}' and '${endTime}'`,
-      `select name from projects_deleted where deleteAt between '${startTime}' and '${endTime}'`
+      `select name from projects where deletedAt between '${startTime}' and '${endTime}'`
     ]);
     let newMembers, newProjects, delMembers, delProjects;
     //#region 查找日期内的新增成员

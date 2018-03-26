@@ -17,14 +17,17 @@ async function changePwdByUser(req, res, next) {
     return next(error);
   }
 
-  //  新旧密码不能一样
-  if (nPwd === oPwd) {
-    return next(new ResponseError('新旧密码不能一样', 406));
-  }
-
   try {
     let connection = createConnection();
     let rs = (await query.all(connection, 'users', 'account', ac))[0];
+
+    oPwd = (await query.sql(connection, `SELECT PASSWORD('${oPwd}')`))[0][`PASSWORD('${oPwd}')`];
+    nPwd = (await query.sql(connection, `SELECT PASSWORD('${nPwd}')`))[0][`PASSWORD('${nPwd}')`];
+    
+    //  新旧密码不能一样
+    if (nPwd === oPwd) {
+      return next(new ResponseError('新旧密码不能一样', 406));
+    }
 
     if (!rs) {
       return next(new ResponseError('账号不存在', 406));

@@ -14,6 +14,7 @@ async function updateProject(req, res, next) {
     endTime: b.endTime,
     leaderId: +b.leaderId,
     stageId: +b.stageId,
+    process: +b.process,
     contractVal: +b.contractVal,    // 合同金额  
   };
 
@@ -29,7 +30,8 @@ async function updateProject(req, res, next) {
     ['endTime', project.endTime],
     ['contractVal', project.contractVal],
     ['uid', project.leaderId],
-    ['stageId', project.stageId]
+    ['stageId', project.stageId],
+    ['process', project.process],
   ]));
   if (error) {
     return next(error);
@@ -48,7 +50,7 @@ async function updateProject(req, res, next) {
 
 
     //  检验项目转让人是否为PM
-    let roleId = (await query.one(connection, 'roleId', 'users', 'id', project.leaderId))[0].roleId;
+    let roleId = (await query.sql(connection, `SELECT roleId FROM users WHERE id = ${project.leaderId}`))[0].roleId;
     if (roleId !== 1) {
       return next(new ResponseError('转让人不是PM', 406));
     }
@@ -58,6 +60,16 @@ async function updateProject(req, res, next) {
     b.members && (members = b.members.toArray());
     members.push(project.leaderId);
     members = [...new Set(members)];  //  去重
+
+    //  校验更换的成员是否有负责的事件
+    let curMembers = await query.sql(connection, `SELECT userId FROM users_projects WHERE projectId = ${projectId}`);
+    curMembers = curMembers.map(u => u.userId);
+    let differ = curMembers.filter(id => !members.includes(id));  //  找出被移除的成员id
+    let events = await query.sql(connection, `SELECT eventId FROM users_events WHERE userId in (${differ.join(',')}) AND 
+    eventId in (SELECT id FROM events WHERE projectId = ${projectId})`);
+    if (events.length > 0) {
+      return next(new ResponseError('移除的成员尚有负责的事件', 406));
+    }
 
     //  把members中id对应的用户名存储在projects中
     let users = await query.sql(connection, `select username from users where id in (${members.join(',')})`);

@@ -32,35 +32,41 @@ async function deleteUser(req, res, next) {
   try {
     let connection = createConnection();
     connection.connect();
+    //  检查是否有正在参与的项目
+    let projects = await query.sql(connection,
+      `SELECT id FROM projects WHERE
+    isDeleted = 0 AND
+    id in (SELECT projectId FROM users_projects WHERE userId = ${deleteId})`);
+    if (projects.length > 0) {
+      return next(new ResponseError('该用户还有负责的项目!', 406));
+    }
 
-    await query.delete(connection, 'users', 'id', deleteId);
+    await query.sql(connection,
+      `UPDATE users SET 
+      isDeleted = 1,
+      deletedAt = '${new Date().format('yyyy-MM-dd hh:mm:ss')}'
+      WHERE id = ${deleteId}`);
 
     connection.end();
+    res.status(200).json({
+      msg: '删除成功'
+    }).end();
 
   } catch (err) {
     next(err);
   }
-
-  res.status(200).json({
-    msg: '删除成功'
-  }).end();
 }
 
 //  获取用户列表
 async function getUsersList(req, res, next) {
   try {
     let connection = createConnection();
-
-    let rs = await query.view(connection, 'USER_PROFILE');
+    let rs = await query.sql(connection,
+      `SELECT id, username, cityId, cityName, depId, depName, jobId, jobName
+      FROM users WHERE isDeleted = 0 AND id <> 0`);
     connection.end();
 
-    let users = rs.length > 0 ? rs.map(({ id, username, cityId, cityName, depId, depName, jobId, jobName }) => {
-      return {
-        id, username, cityId, cityName, depId, depName, jobId, jobName
-      };
-    }) : [];
- 
-    res.status(200).json(users).end();
+    res.status(200).json(rs).end();
 
   } catch (err) {
     next(err);
