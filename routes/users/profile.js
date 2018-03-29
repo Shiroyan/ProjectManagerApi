@@ -11,13 +11,15 @@ async function getProfile(req, res, next) {
     let connection = createConnection();
     connection.connect();
 
-    let rs = (await query.all(connection, 'users', 'id', req.id))[0];
+    let rs = (await query.sql(connection,
+      `SELECT id, username, cityId, cityName, depId, depName, jobId, jobName, roleId
+      FROM users WHERE id = ${req.id} AND isDeleted = 0`))[0];
 
     connection.end();
-    let { username, cityId, cityName, depId, depName, jobId, jobName } = rs;
+    let { id, username, cityId, cityName, depId, depName, jobId, jobName } = rs;
     let role = rs.roleId;
     res.status(200).json({
-      id: rs.id,
+      userId: id,
       username, cityId, cityName, depId, depName, jobId, jobName, role
     });
   } catch (err) {

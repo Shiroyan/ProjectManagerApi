@@ -63,7 +63,7 @@ async function login(req, res, next) {
     let { username, cityId, cityName, depId, depName, jobId, jobName } = rs;
     let role = rs.roleId;
     res.status(200).json({
-      msg: '登陆成功',
+      msg: '登录成功',
       userId: rs.id,
       username, cityId, cityName, depId, depName, jobId, jobName, role
     });

@@ -10,9 +10,7 @@ async function getTags(req, res, next) {
     let rs = await query.view(connection, 'getTags');
 
     connection.end();
-    res.status(200).json({
-      tags: rs
-    });
+    res.status(200).json(rs);
 
   } catch (err) {
     return next(err);

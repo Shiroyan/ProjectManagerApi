@@ -5,7 +5,7 @@ let createConnection = require('../../utils/create-connection');
 
 let getPlanReport = require('./plan');
 let getRealReport = require('./real');
-let genExcel = require('./excel');
+let { genExcel, getDownloadUrl } = require('./excel');
 
 schedule.scheduleJob('0 0 0 * * 1', async function () {
   console.log('开始执行批量更新 <统计表> 脚本');
@@ -14,8 +14,8 @@ schedule.scheduleJob('0 0 0 * * 1', async function () {
     connection.connect();
 
     let rs = await query.sql(connection, `select id from users where isDeleted = 0`);
-    let startTime = Date.getWeekStart().format('yyyy-MM-dd');
-    let endTime = Date.getWeekEnd().format('yyyy-MM-dd');
+    let startTime = Date.getWeekStart().format('yyyy-MM-dd hh:mm:ss');
+    let endTime = Date.getWeekEnd().format('yyyy-MM-dd hh:mm:ss');
 
     let data = rs.map(temp => `(${temp.id}, '${startTime}', '${endTime}')`);
     await query.sql(connection, `insert into statistics (userId, startTime, endTime) values ${data.join(' , ')}`);
@@ -29,9 +29,12 @@ schedule.scheduleJob('0 0 0 * * 1', async function () {
 
 //  系统、成员的变动
 async function stateChange(req, res, next) {
-  let startTime = req.query.startTime || Date.getWeekStart().format('yyyy-MM-dd');
-  let endTime = req.query.endTime || Date.getWeekEnd().format('yyyy-MM-dd');
-
+  let date = new Date();
+  let startTime = req.query.startTime || date;
+  let endTime = req.query.endTime || date;
+  
+  startTime = Date.getWeekStart(startTime).format('yyyy-MM-dd');
+  endTime = Date.getWeekEnd(endTime).format('yyyy-MM-dd');
   //#region 检验日期是否在同一周、相差是否超过7天
   let error = Date.inAWeek(startTime, endTime);
   if (error) {
@@ -73,6 +76,8 @@ async function stateChange(req, res, next) {
     //#endregion
 
     res.status(200).json({
+      startTime: new Date(startTime).format('yyyy-MM-dd'),
+      endTime: new Date(endTime).format('yyyy-MM-dd'),
       newMembers,
       delMembers,
       newProjects,
@@ -84,8 +89,9 @@ async function stateChange(req, res, next) {
 }
 
 router.get('/', stateChange);
+router.get('/excel', getDownloadUrl);
 router.get('/excel/plan', genExcel);
-router.post('/excel/real', genExcel);
+router.get('/excel/real', genExcel);
 router.get('/:userId/plan', getPlanReport);
 router.get('/:userId/real', getRealReport);
 

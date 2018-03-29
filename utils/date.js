@@ -43,6 +43,7 @@ module.exports = (function () {
     nowDate.setHours(0);
     nowDate.setMinutes(0);
     nowDate.setSeconds(0);
+    nowDate.setMilliseconds(0);
     return nowDate;
   }
 
@@ -54,6 +55,7 @@ module.exports = (function () {
     nowDate.setHours(23);
     nowDate.setMinutes(59);
     nowDate.setSeconds(59);
+    nowDate.setMilliseconds(999);
     return nowDate;
   }
 

@@ -18,6 +18,7 @@ async function finishEvent(req, res, next) {
     let connection = createConnection();
     connection.connect();
 
+    let msg = isFinished ? '事件完成' : '取消完成';
 
     let rs = await query.sql(connection, `select eventId from users_events where userId = ${+req.id} and eventId = ${eventId}`);
     if (rs[0] || req.role === 1 || req.role === 0) {
@@ -30,7 +31,7 @@ async function finishEvent(req, res, next) {
     connection.end();
 
     res.status(200).json({
-      msg: '更新状态成功'
+      msg
     });
   
   } catch (err) {

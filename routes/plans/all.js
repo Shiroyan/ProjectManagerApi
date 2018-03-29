@@ -33,6 +33,7 @@ async function getAllPlans(req, res, next) {
         event.startTime = event.startTime.format('yyyy-MM-dd hh:mm:ss');
         event.endTime = event.endTime.format('yyyy-MM-dd hh:mm:ss');
         event.finishAt && (event.finishAt = event.finishAt.format('yyyy-MM-dd hh:mm:ss'));
+        event.isFinished = !!event.isFinished;
         temp.events.push(event);
       })
       data.push(temp);

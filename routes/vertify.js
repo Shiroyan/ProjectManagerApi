@@ -30,7 +30,9 @@ async function hasToken(req, res, next) {
 
       let connection = createConnection();
 
-      let rs = (await query.all(connection, 'users', 'id', decode.id))[0];
+      let rs = (await query.sql(connection,
+        `SELECT roleId FROM users WHERE id = ${decode.id} AND isDeleted = 0`))[0];
+
       connection.end();
 
       //  不存在此id的用户
@@ -76,7 +78,9 @@ async function isOnDuty(req, res, next) {
     connection.connect();
 
     //  是否存在该项目
-    let rs = (await query.all(connection, 'projects', 'id', projectId))[0];
+    let rs = (await query.sql(connection,
+      `SELECT leaderId FROM projects
+      WHERE id = ${projectId} AND isDeleted = 0`))[0];
     connection.end();
 
     if (rs) {
@@ -112,7 +116,7 @@ async function isPlanExist(req, res, next) {
     connection.connect();
 
     let rs = (await query.sql(connection,
-      `select * from plans where id = ${planId} and belongTo = ${projectId}`))[0];
+      `SELECT id FROM plans WHERE id = ${planId} AND belongTo = ${projectId}`))[0];
 
     connection.end();
     if (!rs) {
@@ -136,7 +140,7 @@ async function isEventExist(req, res, next) {
     connection.connect();
 
     let rs = (await query.sql(connection,
-      `select * from events where id = ${eventId} and belongTo = ${planId}`))[0];
+      `SELECT id FROM events WHERE id = ${eventId} AND belongTo = ${planId}`))[0];
 
     connection.end();
     if (!rs) {

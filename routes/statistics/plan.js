@@ -23,8 +23,12 @@ async function getPlanReport(req, res, next) {
     return next(error);
   }
 
-  let startTime = req.query.startTime || Date.getWeekStart().format('yyyy-MM-dd');
-  let endTime = req.query.endTime || Date.getWeekEnd().format('yyyy-MM-dd');
+  let date = new Date();
+  let startTime = req.query.startTime || date;
+  let endTime = req.query.endTime || date;
+
+  startTime = Date.getWeekStart(startTime).format('yyyy-MM-dd');
+  endTime = Date.getWeekEnd(endTime).format('yyyy-MM-dd');
 
   //#region 检验日期是否在同一周、相差是否超过7天
   error = Date.inAWeek(startTime, endTime);
@@ -78,14 +82,12 @@ async function getPlanReport(req, res, next) {
 
     connection.end();
     res.status(200).json({
-      planReport: {
-        startTime,
-        endTime,
-        planTime,
-        avaTime,
-        busyTime,
-        projects: temp
-      }
+      startTime,
+      endTime,
+      planTime,
+      avaTime,
+      busyTime,
+      projects: temp
     });
 
 

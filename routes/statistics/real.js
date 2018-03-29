@@ -27,8 +27,11 @@ async function getRealReport(req, res, next) {
 
   let date = new Date();
   date.setDate(date.getDate() - 7); //  退回到上个星期
-  let startTime = req.query.startTime || Date.getWeekStart(date).format('yyyy-MM-dd');
-  let endTime = req.query.endTime || Date.getWeekEnd(date).format('yyyy-MM-dd');
+  let startTime = req.query.startTime || date;
+  let endTime = req.query.endTime || date;
+
+  startTime = Date.getWeekStart(startTime).format('yyyy-MM-dd');
+  endTime = Date.getWeekEnd(endTime).format('yyyy-MM-dd');
 
   //#region 检验日期是否在同一周、相差是否超过7天
   error = Date.inAWeek(startTime, endTime, 'real');
@@ -155,23 +158,21 @@ async function getRealReport(req, res, next) {
 
     connection.end();
     res.status(200).json({
-      realReport: {
-        startTime,
-        endTime,
-        planTime,
-        avaTime,
-        realTime,
-        approval,
-        busyTime,
-        planOffset,
-        realOffset,
-        lastWeekRealOffset,
-        effect,
-        lastWeekEff,
-        badCnt,
-        busyCnt,
-        projects: temp
-      }
+      startTime,
+      endTime,
+      planTime,
+      avaTime,
+      realTime,
+      approval,
+      busyTime,
+      planOffset,
+      realOffset,
+      lastWeekRealOffset,
+      effect,
+      lastWeekEff,
+      badCnt,
+      busyCnt,
+      projects: temp
     });
 
 

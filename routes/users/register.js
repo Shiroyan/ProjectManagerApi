@@ -52,6 +52,14 @@ async function register(req, res, next) {
     account = '${account}', cityId = ${cityId}, depId = ${depId}, jobId = ${jobId}, roleId = ${roleId}`;
     rs = await query.sql(connection, sql);
 
+    //#region 创建用户同时也要更新statistics表
+    let userId = rs.insertId;
+    let startTime = Date.getWeekStart().format('yyyy-MM-dd hh:mm:ss');
+    let endTime = Date.getWeekEnd().format('yyyy-MM-dd hh:mm:ss');
+    await query.sql(connection,
+      `INSERT INTO statistics (userId, startTime, endTime) VALUES (${userId},'${startTime}','${endTime}')`);
+    //#endregion
+    
     connection.end();
     res.status(201).json({
       msg: '注册成功'

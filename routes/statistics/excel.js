@@ -12,6 +12,33 @@ const RED_FONT = 'FFFF0000';
 const REAL = 'real';
 const PLAN = 'plan';
 
+
+async function getDownloadUrl(req, res, next) {
+  let type = req.query.type || PLAN;
+  let date = new Date();
+  if (type === REAL) {
+    date.setDate(date.getDate() - 7); //  退回到上个星期
+  }
+  let startTime = req.query.startTime || Date.getWeekStart(date).format('yyyy-MM-dd');
+  let endTime = req.query.endTime || Date.getWeekEnd(date).format('yyyy-MM-dd');
+
+  //#region 检验日期是否在同一周、相差是否超过7天
+  let error = type === REAL ?
+    Date.inAWeek(startTime, endTime, 'real') : Date.inAWeek(startTime, endTime);
+  if (error) {
+    return next(error);
+  }
+  //#endregion
+
+  let baseUrl = req.headers.host;
+  let { protocol } = req;
+  // return url
+  res.status(200).json({
+    url: `${protocol}://${baseUrl}/statistics/excel/${type}?startTime=${startTime}&endTime=${endTime}`
+  });
+}
+
+
 async function genExcel(req, res, next) {
   let { path } = req;
   let date = new Date();
@@ -21,8 +48,11 @@ async function genExcel(req, res, next) {
     type = '实际';
   }
 
-  let startTime = req.query.startTime || Date.getWeekStart(date).format('yyyy-MM-dd');
-  let endTime = req.query.endTime || Date.getWeekEnd(date).format('yyyy-MM-dd');
+  let startTime = req.query.startTime || date;
+  let endTime = req.query.endTime || date;
+
+  startTime = Date.getWeekStart(startTime).format('yyyy-MM-dd');
+  endTime = Date.getWeekEnd(endTime).format('yyyy-MM-dd');
 
   //#region 检验日期是否在同一周、相差是否超过7天
   let error = path.has(REAL) ?
@@ -344,4 +374,7 @@ async function genExcel(req, res, next) {
   }
 }
 
-module.exports = genExcel;
+module.exports = {
+  genExcel,
+  getDownloadUrl,
+};

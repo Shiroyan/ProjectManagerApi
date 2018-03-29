@@ -2,6 +2,12 @@ let createConnection = require('../../utils/create-connection');
 let query = require('../../utils/query');
 let validate = require('../../utils/validate');
 
+/**
+ * 更新事件，不允许变动创建事件的时间，若要变动请另新增事件
+ * @param {*} req 
+ * @param {*} res 
+ * @param {*} next 
+ */
 async function updateEvent(req, res, next) {
   let eventId = req.params.eventId;
   let b = req.body;
@@ -14,7 +20,7 @@ async function updateEvent(req, res, next) {
     approval = +b.approval,
     isFinished = +b.isFinished;
 
-  let { desc, startTime, endTime } = b;
+  let { desc } = b;
   let members = b.members.toArray();
   let tags = b.tags.toArray();
 
@@ -26,8 +32,6 @@ async function updateEvent(req, res, next) {
     ['ratio', ratio],
     ['approval', approval],
     ['process', process],
-    ['startTime', startTime],
-    ['endTime', endTime],
     ['desc', desc],
     ['members', members],
     ['tags', tags],
@@ -43,11 +47,15 @@ async function updateEvent(req, res, next) {
     connection.connect();
 
     //  旧数据
-    let old = (await query.all(connection, 'events', 'id', eventId))[0];
-
+    let old = (await query.sql(connection, `SELECT members, tags, planTime, realTime, approval, startTime, endTime FROM events WHERE id = ${eventId} AND isDeleted = 0`))[0];
+    if (!old) {
+      return next(new ResponseError('事件不存在', 406));
+    }
+    let startTime = old.startTime.format('yyyy-MM-dd hh:mm:ss');
+    let endTime = old.endTime.format('yyyy-MM-dd hh:mm:ss');
     //  根据传入的userid数组，找出它们的username
     let uids = Array.from(members);
-    rs = await query.sql(connection, `select id, username from users where id in (${uids.join(',')})`);
+    rs = await query.sql(connection, `SELECT id, username, jobId FROM users WHERE id in (${uids.join(',')})`);
     //  写入users_events
     let data = [];
     members = [];
@@ -64,7 +72,7 @@ async function updateEvent(req, res, next) {
 
     //  根据传入的tagid数组，找出tag的name
     let tagIds = Array.from(tags);
-    rs = await query.sql(connection, `select * from tags where id in (${tagIds.join(',')})`);
+    rs = await query.sql(connection, `SELECT id, name FROM tags WHERE id in (${tagIds.join(',')})`);
     //  写入events_tags表
     data = [];
     tags = [];
@@ -80,7 +88,7 @@ async function updateEvent(req, res, next) {
       await query.inserts(connection, 'events_tags', data.join(','));
     }
 
-    //#region   更新statistics表
+    //#region   更新statistics表 - 成员变动
     let planOffset = planTime - old.planTime,
       realOffset = realTime - old.realTime,
       approvalOffset = approval - old.approval;

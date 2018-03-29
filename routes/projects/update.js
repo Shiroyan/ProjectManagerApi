@@ -62,20 +62,25 @@ async function updateProject(req, res, next) {
     members = [...new Set(members)];  //  去重
 
     //  校验更换的成员是否有负责的事件
-    let curMembers = await query.sql(connection, `SELECT userId FROM users_projects WHERE projectId = ${projectId}`);
+    let curMembers = await query.sql(connection,
+      `SELECT userId FROM users_projects WHERE projectId = ${projectId}`);
     curMembers = curMembers.map(u => u.userId);
     let differ = curMembers.filter(id => !members.includes(id));  //  找出被移除的成员id
-    let events = await query.sql(connection, `SELECT eventId FROM users_events WHERE userId in (${differ.join(',')}) AND 
-    eventId in (SELECT id FROM events WHERE projectId = ${projectId})`);
-    if (events.length > 0) {
-      return next(new ResponseError('移除的成员尚有负责的事件', 406));
+    if (differ.length > 0) {
+      let events = await query.sql(connection, `SELECT id FROM events WHERE isDeleted = 0 AND projectId = ${projectId} AND
+      id in (SELECT eventId FROM users_events WHERE userId in (${differ.join(',')}) )`);
+
+      if (events.length > 0) {
+        return next(new ResponseError('移除的成员尚有负责的事件', 406));
+      }
     }
+
 
     //  把members中id对应的用户名存储在projects中
     let users = await query.sql(connection, `select username from users where id in (${members.join(',')})`);
     let membersName = users.map(user => user.username) || [];
     project.members = membersName.join(',');
-    
+
     //  更新项目资料
     await query.update(connection, 'projects', project, 'id', projectId);
 
