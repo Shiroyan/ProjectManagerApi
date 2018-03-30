@@ -48,6 +48,9 @@ async function getPlanReport(req, res, next) {
     and '${endTime}' between startTime and endTime)`
 
     let rs = (await query.sql(connection, sql))[0];
+    if (!rs) {
+      return next(new ResponseError('暂无数据', 406));
+    }
     let { avaTime, planTime, busyTime } = rs;
 
 

@@ -75,12 +75,14 @@ async function getRealReport(req, res, next) {
       planOffset = rs.planOffset;
       realOffset = rs.realOffset;
       effect = rs.effect
+    } else {
+      return next(new ResponseError('暂无数据', 406));
     }
 
     //#endregion
 
     //#region 查找用户参与的所有事件, 并找出它们参与的所有项目， 项目占用工时
-    sql = `select projectId,projectName,planTime from events 
+    sql = `select projectId,projectName,planTime, realTime from events 
     where isDeleted = 0 AND
     id in (select eventId from users_events where userId = ${userId})
     and (startTime between '${startTime}' and '${endTime}' and endTime between '${startTime}' and '${endTime}')`;
@@ -88,13 +90,15 @@ async function getRealReport(req, res, next) {
     let events = await query.sql(connection, sql);
     let projects = new Map();
     events.forEach(event => {
-      let { projectId, projectName, planTime } = event;
+      let { projectId, projectName, planTime, realTime } = event;
       let project = projects.get(projectId);
       if (project) {
         project.planTime += planTime;
+        project.realTime += realTime;
       } else {
         projects.set(projectId, {
           planTime,
+          realTime,
           name: projectName
         });
       }
