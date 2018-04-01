@@ -75,7 +75,7 @@ async function updateProfileByAdmin(req, res, next) {
   let userId = +req.params.uid,
     username = b.username,
     cityId = +b.city,
-    depId = +b.department,
+    depId = +b.dep,
     jobId = +b.job,
     newPwd = b.newPwd;
 
@@ -106,7 +106,7 @@ async function updateProfileByAdmin(req, res, next) {
     if (newPwd) {
       sql += `, password = PASSWORD('${newPwd}')`;
     }
-    sql += `WHERE id = ${userId} AND isDeleted = 0`
+    sql += ` WHERE id = ${userId} AND isDeleted = 0`
     let rs = await query.sql(connection, sql);
 
     connection.end();

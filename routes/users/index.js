@@ -85,7 +85,6 @@ router.put('/password', changePwdByUser);
 router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
 router.put('/profile/:uid', [isAdmin, updateProfileByAdmin]);
-router.put('/profile/:uid')
 router.post('/register', register);
 router.delete('/:uid', [isAdmin, deleteUser]);
 router.get('/', getUsersList);

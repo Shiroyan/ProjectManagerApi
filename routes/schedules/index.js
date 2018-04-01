@@ -14,17 +14,16 @@ async function getSchedules(req, res, next) {
   }
   let begin = new Date(year, month - 1, 1);
   let end = new Date(year, month, 0, 23, 59, 59, 999);
+  let beginStr = new Date(year, month - 1, 1).format('yyyy-MM-dd hh:mm:ss');
+  let endStr = new Date(year, month, 0, 23, 59, 59, 999).format('yyyy-MM-dd hh:mm:ss');
 
   try {
     let connection = createConnection();
     connection.connect();
 
-    let sql = `select 
-    id, \`desc\`, startTime, endTime, projectId, projectName 
-    from events 
-    where id in (select eventId from users_events where userId = ${req.id})
-    and (startTime >= ${+begin} or endTime <= ${+end}) 
-    and isDeleted = 0 and isFinished = 0`;
+    let sql = `SELECT id, \`desc\`, startTime, endTime, projectId, projectName 
+    FROM events WHERE id IN (SELECT eventId FROM users_events WHERE userId = ${req.id}) AND isDeleted = 0 and isFinished = 0
+    AND ((startTime >= '${beginStr}' AND startTime <= '${endStr}') OR (endTime >= '${beginStr}' AND endTime <= '${endStr}'))`;
     let rs = await query.sql(connection, sql);
 
     //  以日期为key

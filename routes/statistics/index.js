@@ -7,18 +7,27 @@ let getPlanReport = require('./plan');
 let getRealReport = require('./real');
 let { genExcel, getDownloadUrl } = require('./excel');
 
+/**
+ * 每个星期一凌晨0：00 自动生成本星期，下星期的统计表
+ */
 schedule.scheduleJob('0 0 0 * * 1', async function () {
   console.log('开始执行批量更新 <统计表> 脚本');
   try {
     let connection = createConnection();
     connection.connect();
+    let nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
 
     let rs = await query.sql(connection, `select id from users where isDeleted = 0`);
     let startTime = Date.getWeekStart().format('yyyy-MM-dd hh:mm:ss');
     let endTime = Date.getWeekEnd().format('yyyy-MM-dd hh:mm:ss');
+    let nWStartTime = Date.getWeekStart(nextWeek).format('yyyy-MM-dd hh:mm:ss');
+    let nWEndTime = Date.getWeekEnd(nextWeek).format('yyyy-MM-dd hh:mm:ss');
 
-    let data = rs.map(temp => `(${temp.id}, '${startTime}', '${endTime}')`);
-    await query.sql(connection, `insert into statistics (userId, startTime, endTime) values ${data.join(' , ')}`);
+    let data1 = rs.map(temp => `(${temp.id}, '${startTime}', '${endTime}')`);
+    let data2 = rs.map(temp => `(${temp.id}, '${nWStartTime}', '${nWEndTime}')`);
+    await query.sql(connection, `insert into statistics (userId, startTime, endTime) values ${data1.join(' , ')}`);
+    await query.sql(connection, `insert into statistics (userId, startTime, endTime) values ${data2.join(' , ')}`);
 
     connection.end();
     console.log('结束脚本');

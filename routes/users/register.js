@@ -54,10 +54,17 @@ async function register(req, res, next) {
 
     //#region 创建用户同时也要更新statistics表
     let userId = rs.insertId;
+
+    let nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
     let startTime = Date.getWeekStart().format('yyyy-MM-dd hh:mm:ss');
     let endTime = Date.getWeekEnd().format('yyyy-MM-dd hh:mm:ss');
+    let nWStartTime = Date.getWeekStart(nextWeek).format('yyyy-MM-dd hh:mm:ss');
+    let nWEndTime = Date.getWeekEnd(nextWeek).format('yyyy-MM-dd hh:mm:ss');
     await query.sql(connection,
       `INSERT INTO statistics (userId, startTime, endTime) VALUES (${userId},'${startTime}','${endTime}')`);
+    await query.sql(connection,
+      `INSERT INTO statistics (userId, startTime, endTime) VALUES (${userId},'${nWStartTime}','${nWEndTime}')`);
     //#endregion
     
     connection.end();

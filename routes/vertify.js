@@ -18,7 +18,7 @@ async function hasToken(req, res, next) {
     try {
       //  缺少token
       if (!req.cookies.token) {
-        return next(new ResponseError('缺少令牌', 401));
+        return next(new ResponseError('缺少令牌、请重新登录', 401));
       }
 
       let decode = jwt.verify(req.cookies.token, SECRECT);
