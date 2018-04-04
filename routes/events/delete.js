@@ -11,16 +11,21 @@ async function _deleteEvent(eventId, connection) {
       throw error;
     }
     //#region 更新statistics表
-    let old = (await query.all(connection, 'events', 'id', eventId))[0];
+    let old = (await query.sql(connection,
+      `SELECT startTime, endTime, planTime, realTime, approval 
+    FROM events WHERE id = ${eventId}`))[0];
     if (old) {
-      let members = JSON.parse(old.members);
+      let members = await query.sql(connection,
+        `SELECT userId AS id FROM users_events WHERE eventId = ${eventId}`);
+      members = members.map(({ id }) => id);
+
       if (Array.isArray(members) && members.length > 0) {
-        members = members.map(m => m.id);
+        membersStr = members.join(',');
         let sql = `update statistics set
    planTime = planTime - ${old.planTime},
    realTime = realTime - ${old.realTime},
    approval = approval - ${old.approval}
-   where userId in (${members.join(',')})
+   where userId in (${membersStr})
    and ('${old.startTime.format('yyyy-MM-dd')}' between startTime and endTime and '${old.endTime.format('yyyy-MM-dd')}' between startTime and endTime)`;
         await query.sql(connection, sql);
       }

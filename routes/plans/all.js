@@ -16,7 +16,7 @@ async function getAllPlans(req, res, next) {
     let connection = createConnection();
     connection.connect();
 
-    let plans = await query.sql(connection, 
+    let plans = await query.sql(connection,
       `SELECT id, name, process FROM plans WHERE belongTo = ${projecId} AND isDeleted = 0`);
     let data = [];
     let events;
@@ -24,18 +24,20 @@ async function getAllPlans(req, res, next) {
       let plan = plans[i];
       let { id, name, process } = plan;
       let temp = { id, name, process, events: [] };
-      events = await query.sql(connection, 
-        `SELECT id, \`desc\`, startTime, endTime, planTime, realTime, approval, ratio, process, tags, isFinished, members, finishAt 
+      events = await query.sql(connection,
+        `SELECT id, \`desc\`, startTime, endTime, planTime, realTime, approval, ratio, process, isFinished, finishAt 
         FROM events WHERE belongTo = ${id} AND isDeleted = 0`);
-      events.forEach(event => {
-        event.tags = JSON.parse(event.tags);
-        event.members = JSON.parse(event.members);
+      for (let event of events) {
+        event.members = await query.sql(connection,
+          `SELECT userId AS id, username, jobId FROM users_events WHERE eventId = ${event.id}`);
+        event.tags = await query.sql(connection,
+          `SELECT tagId AS id, tagName AS name FROM events_tags WHERE eventId = ${event.id}`);
         event.startTime = event.startTime.format('yyyy-MM-dd hh:mm:ss');
         event.endTime = event.endTime.format('yyyy-MM-dd hh:mm:ss');
         event.finishAt && (event.finishAt = event.finishAt.format('yyyy-MM-dd hh:mm:ss'));
         event.isFinished = !!event.isFinished;
         temp.events.push(event);
-      })
+      }
       data.push(temp);
     }
 

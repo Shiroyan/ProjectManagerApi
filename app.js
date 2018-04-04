@@ -1,4 +1,5 @@
 var express = require('express');
+var compression = require('compression');
 var path = require('path');
 var favicon = require('serve-favicon');
 var cookieParser = require('cookie-parser');
@@ -32,6 +33,9 @@ var schedules = require('./routes/schedules/index');
 //  statistics  接口
 var statistics = require('./routes/statistics/index');
 
+//  options 接口
+var options = require('./routes/options/index');
+
 //  util
 require('./utils/date');
 require('./utils/str2Array');
@@ -47,6 +51,7 @@ app.set('view engine', 'jade');
 
 // uncomment after placing your favicon in /public
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+app.use(compression());
 app.use(logger.dev());
 app.use(logger.access());
 app.use(logger.error());
@@ -76,6 +81,7 @@ app.use('/plans', plans);
 app.use('/events', events);
 app.use('/schedules', schedules);
 app.use('/statistics', statistics);
+app.use('/options', options);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -108,8 +114,7 @@ app.use(function (err, req, res, next) {
       });
     default:
       res.status(500).json({
-        error: '未知错误',
-        stack: error.stack
+        error: err.message || '未知错误',
       });
   }
 });

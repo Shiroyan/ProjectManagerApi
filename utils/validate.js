@@ -26,7 +26,7 @@ const FORMAT = {
   password: pwd,
   oldPwd: pwd,
   newPwd: pwd,
-  username: str(3, 12),
+  username: str(1, 12),
   city: num(0, 1),
   dep: num(1, 9),
   job: num(1, 15),

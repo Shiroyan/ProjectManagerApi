@@ -1,5 +1,4 @@
 var morgan = require('morgan');
-var rfs = require('rotating-file-stream');
 var path = require('path');
 var fs = require('fs');
 var FileStreamRotator = require('file-stream-rotator')

@@ -58,7 +58,6 @@ async function login(req, res, next) {
     let day = autoLogin === 'false' ? 0.1 : 15;
     res.cookie('token', token, {
       expires: new Date(Date.now() + day * 24 * 3600 * 1000),
-      httpOnly: true,
     });
     let { username, cityId, cityName, depId, depName, jobId, jobName } = rs;
     let role = rs.roleId;

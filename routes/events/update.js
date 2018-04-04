@@ -46,55 +46,65 @@ async function updateEvent(req, res, next) {
     let connection = createConnection();
     connection.connect();
 
-    //  旧数据
-    let old = (await query.sql(connection, `SELECT members, tags, planTime, realTime, approval, startTime, endTime FROM events WHERE id = ${eventId} AND isDeleted = 0`))[0];
+    //#region  旧数据
+    let old = (await query.sql(connection, `SELECT planTime, realTime, approval, startTime, endTime FROM events WHERE id = ${eventId} AND isDeleted = 0`))[0];
     if (!old) {
       return next(new ResponseError('事件不存在', 406));
     }
+    //  旧成员
+    let oMembers = await query.sql(connection,
+      `SELECT userId AS id FROM users_events WHERE eventId = ${eventId}`);
+    oMembers = oMembers.map(({ id }) => id);
+    let oMembersStr = oMembers.join(',');
+    //  旧标签
+    let oTags = await query.sql(connection,
+      `SELECT tagId AS id FROM events_tags WHERE eventId = ${eventId}`);
+    oTags = oTags.map(({ id }) => id);
+    oTagsStr = oTags.join(',');
+
+    //  时间是不允许更改的
     let startTime = old.startTime.format('yyyy-MM-dd hh:mm:ss');
     let endTime = old.endTime.format('yyyy-MM-dd hh:mm:ss');
-    //  根据传入的userid数组，找出它们的username
-    let uids = Array.from(members);
-    rs = await query.sql(connection, `SELECT id, username, jobId FROM users WHERE id in (${uids.join(',')})`);
-    //  写入users_events
-    let data = [];
-    members = [];
-    rs.forEach(({ id, username, jobId }) => {
-      data.push(`(${id}, "${username}", ${eventId})`);
-      //  把参与用户的信息，转成数组，再转成JSON存入数据库
-      members.push({ id, username, jobId });
-    });
-    members = JSON.stringify(members);
-    if (old.members !== members) {
+    //#endregion
+
+    //#region 新数据
+    //  新成员
+    let nMembers = members.slice(0);
+    let nMembersStr = nMembers.join(',');
+    //  新标签
+    let nTags = tags.slice(0);
+    let nTagsStr = tags.join(',');
+    //#endregion
+
+    //#region 更新users_events关系
+
+    //  根据传入的userid数组，找出它们的 username、jobId
+    rs = await query.sql(connection, `SELECT id, username, jobId FROM users WHERE id IN (${nMembersStr})`);
+
+    let data = rs.map(({ id, username, jobId }) => `(${id}, "${username}", ${jobId}, ${eventId})`);
+    if (nMembersStr !== oMembersStr) {
       await query.delete(connection, 'users_events', 'eventId', eventId);
       await query.inserts(connection, 'users_events', data.join(','));
     }
+    //#endregion
+
+    //#region 更新events_tags关系
 
     //  根据传入的tagid数组，找出tag的name
-    let tagIds = Array.from(tags);
-    rs = await query.sql(connection, `SELECT id, name FROM tags WHERE id in (${tagIds.join(',')})`);
+    rs = await query.sql(connection, `SELECT id, name FROM tags WHERE id in (${nTagsStr})`);
     //  写入events_tags表
-    data = [];
-    tags = [];
-    rs.forEach(temp => {
-      let { id, name } = temp;
-      data.push(`(${id}, "${name}", ${eventId})`);
-      //  把参与用户的信息，转成数组，再转成JSON存入数据库
-      tags.push({ id, name });
-    });
-    tags = JSON.stringify(tags);
-    if (old.tags !== tags) {
+    data = rs.map(({ id, name }) => `(${id}, "${name}", ${eventId})`);
+    if (nTagsStr !== oTagsStr) {
       await query.delete(connection, 'events_tags', 'eventId', eventId);
       await query.inserts(connection, 'events_tags', data.join(','));
     }
+    //#endregion
 
     //#region   更新statistics表 - 成员变动
     let planOffset = planTime - old.planTime,
       realOffset = realTime - old.realTime,
       approvalOffset = approval - old.approval;
 
-    let oMembers = JSON.parse(old.members).map(m => m.id);
-    let nMembers = b.members.toArray();
     //  新增成员
     let addMembers = Array.differ(nMembers, oMembers);
     //  删除成员
@@ -140,8 +150,6 @@ async function updateEvent(req, res, next) {
       approval,
       ratio,
       process,
-      members,
-      tags,
       isFinished
     }, 'id', eventId);
 

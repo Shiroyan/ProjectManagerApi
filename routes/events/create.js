@@ -43,32 +43,24 @@ async function createEvent(req, res, next) {
       projectName
     })).insertId;
 
-
+    //#region 创建users_events关系
     //  根据传入的userid数组，找出它们的username
-    let rs = await query.sql(connection, `select id, username, jobId from users where id in (${members.join(',')})`);
+    let rs = await query.sql(connection,
+      `SELECT id, username, jobId FROM users WHERE id IN (${members.join(',')})`);
     //  写入users_events
-    let data = [];
-    members = [];
-    rs.forEach(({id, username, jobId}) => {
-      data.push(`(${id}, "${username}", ${eventId})`);
-      //  把参与用户的信息，转成数组，再转成JSON存入数据库
-      members.push({ id, username, jobId });
-    });
+    let data = rs.map(({ id, username, jobId }) => `(${id}, "${username}", ${jobId}, ${eventId})`);
     await query.inserts(connection, 'users_events', data.join(','));
+    //#endregion
 
-
+    //#region 创建events_tags关系
     //  根据传入的tagid数组，找出tag的name
-    rs = await query.sql(connection, `select * from tags where id in (${tags.join(',')})`);
+    rs = await query.sql(connection, 
+      `SELECT id, name FROM tags WHERE id in (${tags.join(',')})`);
+
     //  写入events_tags表
-    data = [];
-    tags = [];
-    rs.forEach(temp => {
-      let { id, name } = temp;
-      data.push(`(${id}, "${name}", ${eventId})`);
-      //  把参与用户的信息，转成数组，再转成JSON存入数据库
-      tags.push({ id, name });
-    });
+    data = rs.map(({ id, name }) => `(${id}, "${name}", ${eventId})`);
     await query.inserts(connection, 'events_tags', data.join(','));
+    //#endregion
 
     //#region 更新statistics表
     let nMembers = b.members.toArray();
@@ -79,11 +71,6 @@ async function createEvent(req, res, next) {
 
     await query.sql(connection, sql);
     //#endregion
-
-    await query.update(connection, 'events', {
-      members: JSON.stringify(members),
-      tags: JSON.stringify(tags)
-    }, 'id', eventId);
 
     connection.end();
     res.status(201).json({
