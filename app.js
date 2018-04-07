@@ -43,7 +43,7 @@ require('./utils/array');
 
 
 var app = express();
-
+const baseUrl = '/';
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -73,15 +73,15 @@ app.all('*', (req, res, next) => {
   }
 });
 // app.use(cors());
-app.use('/', index);
-app.use('/', hasToken);
-app.use('/users', users);
-app.use('/projects', projects);
-app.use('/plans', plans);
-app.use('/events', events);
-app.use('/schedules', schedules);
-app.use('/statistics', statistics);
-app.use('/options', options);
+app.use(`${baseUrl}`, index);
+app.use(`${baseUrl}`, hasToken);
+app.use(`${baseUrl}users`, users);
+app.use(`${baseUrl}projects`, projects);
+app.use(`${baseUrl}plans`, plans);
+app.use(`${baseUrl}events`, events);
+app.use(`${baseUrl}schedules`, schedules);
+app.use(`${baseUrl}statistics`, statistics);
+app.use(`${baseUrl}options`, options);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
