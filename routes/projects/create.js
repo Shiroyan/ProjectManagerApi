@@ -36,7 +36,8 @@ async function createProject(req, res, next) {
     connection.connect();
 
     //  检验是否存在同名项目
-    let rs = await query.all(connection, 'projects', 'name', project.name);
+    let rs = await query.sql(connection,
+      `SELECT id FROM projects WHERE name = '${project.name}' AND isDeleted = 0`);
     if (rs.length > 0) {
       return next(new ResponseError('创建失败，已存在同名项目', 406));
     }

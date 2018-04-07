@@ -43,7 +43,7 @@ async function updateProject(req, res, next) {
 
     // 检验项目名是否已存在
     rs = await query.sql(connection,
-      `select * from projects where name = '${project.name}' and id <> ${projectId}`);
+      `SELECT id FROM projects WHERE isDeleted = 0 AND name = '${project.name}' AND id <> ${projectId}`);
     if (rs.length > 0) {
       return next(new ResponseError('已存在该项目名', 406));
     }
