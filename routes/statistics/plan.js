@@ -27,8 +27,8 @@ async function getPlanReport(req, res, next) {
   let startTime = req.query.startTime || date;
   let endTime = req.query.endTime || date;
 
-  startTime = Date.getWeekStart(startTime).format('yyyy-MM-dd');
-  endTime = Date.getWeekEnd(endTime).format('yyyy-MM-dd');
+  startTime = Date.getWeekStart(startTime).format('yyyy-MM-dd hh:mm:ss');
+  endTime = Date.getWeekEnd(endTime).format('yyyy-MM-dd hh:mm:ss');
 
   //#region 检验日期是否在同一周、相差是否超过7天
   error = Date.inAWeek(startTime, endTime);

@@ -20,6 +20,7 @@ function str(min, max) {
 }
 let date = { type: 'date' };
 let pwd = str(6, 12);
+let POSITIVE_NUM = num(0, Number.MAX_SAFE_INTEGER);
 
 const FORMAT = {
   account: str(5, 12),
@@ -27,13 +28,13 @@ const FORMAT = {
   oldPwd: pwd,
   newPwd: pwd,
   username: str(1, 12),
-  city: num(0, 1),
-  dep: num(1, 9),
-  job: num(1, 15),
-  role: num(1, Number.MAX_SAFE_INTEGER),
-  uid: num(0, Number.MAX_SAFE_INTEGER),
-  projectId: num(0, Number.MAX_SAFE_INTEGER),
-  eventId: num(0, Number.MAX_SAFE_INTEGER),
+  city: POSITIVE_NUM,
+  dep: POSITIVE_NUM,
+  job: POSITIVE_NUM,
+  role: POSITIVE_NUM,
+  uid: POSITIVE_NUM,
+  projectId: POSITIVE_NUM,
+  eventId: POSITIVE_NUM,
   projectName: str(3, 12),
   firstParty: str(2, 20),
   members: { type: 'Array<number>' },
@@ -42,10 +43,10 @@ const FORMAT = {
   endTime: date,
   planTime: num(0, 200),
   realTime: num(0, 200),
-  stageId: num(0, 11),
+  stageId: POSITIVE_NUM,
   contractVal: num(0, 1000000),
   process: num(0, 100),
-  planId: num(0, Number.MAX_SAFE_INTEGER),
+  planId: POSITIVE_NUM,
   planName: str(3, 12),
   isFinished: num(0, 1),
   ratio: num(0, 2),
