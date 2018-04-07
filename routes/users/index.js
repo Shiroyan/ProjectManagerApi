@@ -60,10 +60,14 @@ async function deleteUser(req, res, next) {
 //  获取用户列表
 async function getUsersList(req, res, next) {
   try {
+    let sql = `SELECT id, username, cityId, cityName, depId, depName, jobId, jobName
+    FROM users WHERE isDeleted = 0 AND id <> 0`;
+    if (req.role === 0) {
+      sql = `SELECT account, id, username, cityId, cityName, depId, depName, jobId, jobName
+      FROM users WHERE isDeleted = 0`;
+    }
     let connection = createConnection();
-    let rs = await query.sql(connection,
-      `SELECT id, username, cityId, cityName, depId, depName, jobId, jobName
-      FROM users WHERE isDeleted = 0 AND id <> 0`);
+    let rs = await query.sql(connection, sql);
     connection.end();
 
     res.status(200).json(rs).end();

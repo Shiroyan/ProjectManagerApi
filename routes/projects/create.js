@@ -11,7 +11,7 @@ async function createProject(req, res, next) {
     startTime: b.startTime,
     endTime: b.endTime,
     leaderId: req.id,
-    stageId: +b.stageId || 0,
+    stageId: +b.stageId || 1,
     contractVal: +b.contractVal,    // 合同金额  
   };
 
