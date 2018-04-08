@@ -10,7 +10,7 @@ async function createProject(req, res, next) {
     firstParty: b.firstParty,
     startTime: b.startTime,
     endTime: b.endTime,
-    leaderId: req.id,
+    leaderIds: req.id,
     stageId: +b.stageId || 1,
     contractVal: +b.contractVal,    // 合同金额  
   };
@@ -43,15 +43,10 @@ async function createProject(req, res, next) {
     }
 
     //  对members进行处理
-    let members = [];
-    b.members && (members = b.members.toArray());
-    members.push(project.leaderId);
-    members = [...new Set(members)];  //  去重
+    let members = b.members.toArray();             // 剔除非法的id
+    members = members.filter(id => id !== req.id); // leader不属于members
+    project.memberIds = members.join(',');
 
-    //  把members中id对应的用户名存储在projects中
-    let users = await query.sql(connection, `select username from users where id in (${members.join(',')})`);
-    let membersName = users.map(user => user.username) || [];
-    project.members = membersName.join(',');
 
     //  写入数据库, 创建项目
     rs = await query.insert(connection, 'projects', project);
@@ -59,7 +54,8 @@ async function createProject(req, res, next) {
 
 
     //  处理users-projects的归属关系
-    let data = members.map(userId => `(${userId}, ${projectId})`) || [];
+    let data = members.map(userId => `(${userId}, ${projectId})`);
+    data.push(`(${req.id}, ${projectId})`);
     data = data.join(',');
 
     rs = await query.inserts(connection, 'users_projects', data);

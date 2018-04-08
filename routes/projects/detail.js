@@ -16,25 +16,27 @@ async function getProjectsDetail(req, res, next) {
     let connection = createConnection();
     connection.connect();
 
-    let project = (await query.sql(connection, 
-      `SELECT id, name, leaderId, startTime, endTime, firstParty, contract, contractVal, stageId, stageName, process
+    let project = (await query.sql(connection,
+      `SELECT id, name, leaderIds, memberIds, startTime, endTime, firstParty, contract, contractVal, stageId, stageName, process
       FROM projects WHERE id = ${projectId} AND isDeleted = 0`))[0];
     if (!project) {
       return next(new ResponseError('该项目不存在/已删除', 406));
     }
 
-    let { leaderId } = project;
 
     //  查询参与成员的详细信息
-    let sql = `select * from users where id in (select userId from users_projects where projectId = ${projectId})`;
-    rs = await query.sql(connection, sql);
-    //  组织需要返回的数据
+    let { memberIds, leaderIds } = project;
     let members = [];
-    let leader;
-    rs.forEach(({ id, username, cityId, cityName, depId, depName, jobId, jobName }) => {
-      let temp = { id, username, cityId, cityName, depId, depName, jobId, jobName };
-      id === leaderId ? (leader = temp) : members.push(temp);
-    });
+    let leaders = [];
+    if (memberIds.length > 0) {
+      members = await query.sql(connection,
+        `SELECT id, username, cityId, cityName, depId, depName, jobId, jobName FROM users WHERE id IN (${memberIds})`);
+    }
+    if (leaderIds.length > 0) {
+      leaders = await query.sql(connection,
+        `SELECT id, username, cityId, cityName, depId, depName, jobId, jobName FROM users WHERE id IN (${leaderIds})`);
+    }
+
     //  生成合同下载url
     let contract = `/projects/contracts/${project.id}`;
 
@@ -51,7 +53,7 @@ async function getProjectsDetail(req, res, next) {
       stageId,
       stageName,
       process,
-      leader,
+      leaders,
       members,
       contract
     });

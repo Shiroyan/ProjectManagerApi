@@ -79,7 +79,7 @@ async function isOnDuty(req, res, next) {
 
     //  是否存在该项目
     let rs = (await query.sql(connection,
-      `SELECT leaderId FROM projects
+      `SELECT leaderIds FROM projects
       WHERE id = ${projectId} AND isDeleted = 0`))[0];
     connection.end();
 
@@ -88,8 +88,9 @@ async function isOnDuty(req, res, next) {
       if (req.role === 0) {
         return next();
       }
+      let leaderIds = rs.leaderIds.toArray();
       //  检验PM是否负责该项目
-      if (rs.leaderId !== req.id) {
+      if (leaderIds.indexOf(req.id) === -1) {
         return next(new ResponseError('你并没有负责该项目， 故无权修改该项目', 403));
       }
     } else {
