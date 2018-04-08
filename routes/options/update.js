@@ -42,9 +42,9 @@ async function update(req, res, next) {
   if (!id || !name) {
     return next(new ResponseError('缺少参数/参数非法', 406));
   }
-  if (type === 'job' && id === 5) {//..jobId为5，PM不可修改，删除
-    return next(new ResponseError('不可更改此项', 403));
-  }
+  // if (type === 'job' && id === 5) {//..jobId为5，PM不可修改，删除
+  //   return next(new ResponseError('不可更改此项', 403));
+  // }
 
   try {
     let connection = createConnection();

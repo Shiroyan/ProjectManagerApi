@@ -34,9 +34,9 @@ async function _delete(req, res, next) {
   }
   //.. jobId为5，PM不可修改/删除 因为jobId = 5 和roleId = 1 进行了绑定
 
-  if (type === 'job' && id === 5) {
-    return next(new ResponseError('不可更改此项', 403));
-  }
+  // if (type === 'job' && id === 5) {
+  //   return next(new ResponseError('不可更改此项', 403));
+  // }
 
   try {
     let connection = createConnection();

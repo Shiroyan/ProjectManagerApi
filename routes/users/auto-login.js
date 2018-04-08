@@ -18,7 +18,9 @@ async function autoLogin(req, res, next) {
     res.status(200).json({
       msg: '登陆成功',
       userId: req.id,
-      username, cityId, cityName, depId, depName, jobId, jobName, role
+      username, cityId, cityName, depId, depName, jobId, jobName, role,
+      isAdmin: role === 0,
+      isPM: role === 1 || role === 0,
     });
   } catch (err) {
     next(err);
