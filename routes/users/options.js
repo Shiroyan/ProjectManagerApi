@@ -7,6 +7,7 @@ async function getOptions(req, res, next) {
     let connection = createConnection({
       multipleStatements: true
     });
+
     let rs = await query.multi(connection, [
       'select id, name from departments where id <> 0',
       'select id, name from jobs where id <> 0',

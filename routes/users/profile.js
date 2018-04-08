@@ -22,7 +22,7 @@ async function getProfile(req, res, next) {
       userId: id,
       username, cityId, cityName, depId, depName, jobId, jobName, role,
       isAdmin: role === 0,
-      isPM: role === 1,
+      isPM: role === 1 || role === 0,
     });
   } catch (err) {
     next(err);
