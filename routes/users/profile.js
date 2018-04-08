@@ -20,7 +20,9 @@ async function getProfile(req, res, next) {
     let role = rs.roleId;
     res.status(200).json({
       userId: id,
-      username, cityId, cityName, depId, depName, jobId, jobName, role
+      username, cityId, cityName, depId, depName, jobId, jobName, role,
+      isAdmin: role === 0,
+      isPM: role === 1,
     });
   } catch (err) {
     next(err);
@@ -77,13 +79,15 @@ async function updateProfileByAdmin(req, res, next) {
     cityId = +b.city,
     depId = +b.dep,
     jobId = +b.job,
+    roleId = +b.role,
     newPwd = b.newPwd;
 
   let params = [
     ['username', username],
     ['city', cityId],
     ['dep', depId],
-    ['job', jobId]
+    ['job', jobId],
+    ['role', roleId]
   ];
 
   //  密码不为空则更新密码
@@ -102,7 +106,7 @@ async function updateProfileByAdmin(req, res, next) {
     let data = { username, cityId, depId, jobId };
 
     let sql = `UPDATE users SET
-    username = '${username}', cityId = ${cityId}, depId = ${depId}, jobId = ${jobId}`;
+    username = '${username}', cityId = ${cityId}, depId = ${depId}, jobId = ${jobId}, roleId = ${roleId}`;
     if (newPwd) {
       sql += `, password = PASSWORD('${newPwd}')`;
     }

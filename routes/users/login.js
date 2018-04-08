@@ -64,7 +64,9 @@ async function login(req, res, next) {
     res.status(200).json({
       msg: '登录成功',
       userId: rs.id,
-      username, cityId, cityName, depId, depName, jobId, jobName, role
+      username, cityId, cityName, depId, depName, jobId, jobName, role,
+      isAdmin: role === 0,
+      isPM: role === 1,
     });
 
   } catch (err) {
