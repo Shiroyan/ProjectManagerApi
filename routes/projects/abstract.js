@@ -17,7 +17,7 @@ async function getProjectsAbstract(req, res, next) {
 
     let sql = `SELECT id, name, startTime, endTime, members, leaderName, stageName, process 
     FROM projects WHERE id in (SELECT projectId FROM users_projects WHERE userId = ${req.id})
-    AND isDeleted = 0 `;
+    AND isDeleted = 0 ORDER BY createAt DESC`;
 
     let conds;
     //  关于阶段状态
