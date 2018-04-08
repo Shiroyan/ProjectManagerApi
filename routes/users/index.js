@@ -63,7 +63,7 @@ async function getUsersList(req, res, next) {
     let sql = `SELECT id, username, cityId, cityName, depId, depName, jobId, jobName
     FROM users WHERE isDeleted = 0 AND id <> 0`;
     if (req.role === 0) {
-      sql = `SELECT account, id, username, cityId, cityName, depId, depName, jobId, jobName
+      sql = `SELECT account, id, username, cityId, cityName, depId, depName, jobId, jobName, roleId
       FROM users WHERE isDeleted = 0`;
     }
     let connection = createConnection();
