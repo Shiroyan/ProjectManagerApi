@@ -7,6 +7,7 @@ async function getProjectsAbstract(req, res, next) {
   //  0-全部  1-进行中 2-立项中 3-已结项
   //  若不带有参数则默认为0
   let type = +req.query.type || 0;
+  let page = +req.query.page || 0;
 
   try {
     let connection = createConnection();
@@ -17,7 +18,9 @@ async function getProjectsAbstract(req, res, next) {
 
     let sql = `SELECT id, name, startTime, endTime, members, leaderName, stageName, process 
     FROM projects WHERE id in (SELECT projectId FROM users_projects WHERE userId = ${req.id})
-    AND isDeleted = 0 ORDER BY createAt DESC`;
+    AND isDeleted = 0 ORDER BY createAt DESC LIMIT ${page * 9}, ${(page+1) * 9}`;
+
+    let projectsCnt = await query.sql(connection, `SELECT COUNT(id) FROM projects`);
 
     let conds;
     //  关于阶段状态
