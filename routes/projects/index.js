@@ -9,6 +9,7 @@ let getProjectsAbstract = require('./abstract');
 let getProjectsDetail = require('./detail');
 let downloadContract = require('./download');
 let getStages = require('./stages');
+let exchangeLeader = require('./leader');
 
 let { isPM, isOnDuty } = require('../vertify');
 
@@ -44,6 +45,7 @@ let upload = multer({
 });
 
 router.post('/', [isPM, upload.single('contract'), createProject]);
+router.put('/:projectId/leader', [isPM, isOnDuty, exchangeLeader]);
 router.put('/:projectId', [isPM, isOnDuty, upload.single('contract'), updateProject]);
 router.get('/options', getStages);
 router.delete('/:projectId', [isPM, isOnDuty, deleteProject]);

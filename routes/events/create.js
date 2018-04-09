@@ -26,6 +26,12 @@ async function createEvent(req, res, next) {
     return next(error);
   }
 
+  const SEVENT_DAY = 1000 * 60 * 60 * 24 * 7;
+  const END = Date.getWeekEnd(endTime);
+  const START = Date.getWeekStart(startTime);
+  if (END - START > SEVENT_DAY) {
+    return next(new ResponseError('起止时间需在同一周内', 406));
+  }
 
   try {
     let connection = createConnection();
@@ -54,7 +60,7 @@ async function createEvent(req, res, next) {
 
     //#region 创建events_tags关系
     //  根据传入的tagid数组，找出tag的name
-    rs = await query.sql(connection, 
+    rs = await query.sql(connection,
       `SELECT id, name FROM tags WHERE id in (${tags.join(',')})`);
 
     //  写入events_tags表

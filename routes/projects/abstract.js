@@ -37,9 +37,9 @@ async function getProjectsAbstract(req, res, next) {
     sql += sortLimit;
 
     //  查询行数，以计算页数
-    let sql2 = `SELECT COUNT(id) FROM projects WHERE id IN (SELECT projectId FROM users_projects WHERE userId = ${req.id}) AND ${conds}`;
+    let sql2 = `SELECT COUNT(id) FROM projects WHERE id IN (SELECT projectId FROM users_projects WHERE userId = ${req.id}) AND ${conds} AND isDeleted = 0`;
     if (req.role === 0) {
-      sql2 = `SELECT COUNT(id) FROM projects WHERE ${conds}`
+      sql2 = `SELECT COUNT(id) FROM projects WHERE ${conds} AND isDeleted = 0`;
     }
 
 
@@ -79,7 +79,9 @@ async function getProjectsAbstract(req, res, next) {
 
     connection.end();
     res.status(200).json({
-      total: Math.ceil(projectsCnt / PAGE_COUNT),
+      total: projectsCnt,
+      pageSize: PAGE_COUNT,
+      pageCnt: Math.ceil(projectsCnt / PAGE_COUNT),
       projects
     });
 

@@ -73,22 +73,24 @@ module.exports = (function () {
     if (sDate > bDate) {
       return new ResponseError('结束时间不得小于开始时间', 406);
     }
-    //  “计划” 时间不得超过当周
+    //  “计划” 时间不得超过下周
     if (type === 'plan') {
-      let thisWeekStart = Date.getWeekStart();
-      let thisWeekEnd = Date.getWeekEnd();
+      let nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      let thisWeekStart = Date.getWeekStart(nextWeek);
+      let thisWeekEnd = Date.getWeekEnd(nextWeek);
       if (bDate > thisWeekEnd) {
-        return new ResponseError('结束时间不得大于今周周日', 406);
+        return new ResponseError('结束时间不得大于下周周日', 406);
       }
 
     } else if (type === 'real') {
-      //  “实际” 时间不得超过上周
+      //  “实际” 时间不得超过当周
       let date = new Date();
-      date.setDate(date.getDate() - 7); //  上周日期
+      // date.setDate(date.getDate() - 7); //  上周日期
       let lastWeekStart = Date.getWeekStart(date);
       let lastWeekEnd = Date.getWeekEnd(date);
       if (bDate > lastWeekEnd) {
-        return new ResponseError('结束时间不得大于上周周日', 406);
+        return new ResponseError('结束时间不得大于当周周日', 406);
       }
     }
     //  校验开始、结束时间是否在同一周内

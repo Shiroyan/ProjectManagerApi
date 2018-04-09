@@ -7,7 +7,7 @@ async function getTags(req, res, next) {
     let connection = createConnection();
     connection.connect();
 
-    let rs = await query.view(connection, 'getTags');
+    let rs = await query.sql(connection, 'SELECT id, name FROM tags');
 
     connection.end();
     res.status(200).json(rs);

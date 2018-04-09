@@ -7,7 +7,7 @@ module.exports = (() => {
     let arr = this.split(',');
     arr = arr.map(val => +val);
     arr = arr.filter(val => {
-      return (typeof val === 'number' && val !== 0 && !Number.isNaN(val));
+      return (typeof val === 'number' && !Number.isNaN(val));
     });
     return arr;
   }
