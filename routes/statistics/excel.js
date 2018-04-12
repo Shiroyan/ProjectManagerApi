@@ -12,6 +12,7 @@ const RED_FONT = 'FFFF0000';
 const REAL = 'real';
 const PLAN = 'plan';
 
+fs.existsSync(REPORT_PATH) || fs.mkdirSync(REPORT_PATH); 
 
 async function getDownloadUrl(req, res, next) {
   let type = req.query.type || PLAN;

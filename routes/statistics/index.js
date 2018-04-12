@@ -9,6 +9,7 @@ let { genExcel, getDownloadUrl } = require('./excel');
 
 /**
  * 每个星期一凌晨0：00 自动生成本星期，下星期的统计表
+ * 0 0 0 * * 1
  */
 schedule.scheduleJob('0 0 0 * * 1', async function () {
   console.log('开始执行批量更新 <统计表> 脚本');

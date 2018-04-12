@@ -40,7 +40,7 @@ async function hasToken(req, res, next) {
         return next(new ResponseError('无效的令牌', 401));
       }
 
-      req.id = decode.id;
+      req.id = +decode.id;
       req.role = rs.roleId;
       next();
 

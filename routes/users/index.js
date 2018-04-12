@@ -23,7 +23,7 @@ async function deleteUser(req, res, next) {
 
   //  校验uid是否正确
   let error = validate(new Map([
-    ['uid', deleteId]
+    ['userId', deleteId]
   ]));
   if (error) {
     return next(error);

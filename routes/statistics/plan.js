@@ -17,7 +17,7 @@ async function getPlanReport(req, res, next) {
 
 
   let error = validate(new Map([
-    ['uid', userId]
+    ['userId', userId]
   ]));
   if (error) {
     return next(error);

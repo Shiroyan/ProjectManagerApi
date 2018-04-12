@@ -2,6 +2,89 @@ let createConnection = require('../../utils/create-connection');
 let query = require('../../utils/query');
 let validate = require('../../utils/validate');
 
+async function _createEvent(connection, data) {
+
+  let {
+    projectId,
+    planId,
+    planTime,
+    startTime,
+    endTime,
+    desc,
+    members,
+    tags
+  } = data;
+
+  try {
+
+    let projectName = (await query.one(connection, 'name', 'projects', 'id', projectId))[0].name;
+
+    /**
+     * 一个事件不能对应多个用户，一个事件必须对应一个用户。否则其中一个成员修改事件将会牵连别的人
+     * 当创建一个多人参与的事件时，转化为批量创建 1 to 1 的事件
+     */
+
+    let UEData = [];
+    let eventIds = [];
+    for (let userId of members) {
+      //  插入数据
+      let eventId = (await query.insert(connection, 'events', {
+        belongTo: planId,
+        desc,
+        startTime,
+        endTime,
+        planTime,
+        projectId,
+        projectName
+      })).insertId;
+
+      eventIds.push(eventId);
+
+      //  查找username
+      let rs = await query.sql(connection,
+        `SELECT id, username, jobId FROM users WHERE id = ${userId}`);
+
+      let { id, username, jobId } = rs[0];
+      UEData.push(`(${id}, '${username}', ${jobId}, ${eventId})`);
+    }
+
+    //#region 创建users_events关系
+    await query.sql(connection, `INSERT INTO users_events (userId, username, jobId, eventId ) VALUES ${UEData.join(',')}`);
+    //#endregion
+
+    //#region 创建events_tags关系
+    rs = await query.sql(connection,
+      `SELECT id, name FROM tags WHERE id in (${tags.join(',')})`);  // 找出tag的name
+
+    //  写入events_tags表
+    let ETData = [];
+    for (let eventId of eventIds) {
+      for (let tag of rs) {
+        ETData.push(`(${tag.id}, '${tag.name}', ${eventId})`);
+      }
+    }
+    await query.sql(connection, `INSERT INTO events_tags (tagId, tagName, eventId) VALUES ${ETData.join(',')}`);
+    //#endregion
+
+
+    //#region 更新statistics表
+    let nMembers = members;
+    let sql = `update statistics set planTime = planTime + ${planTime}
+    where userId in (${nMembers.join(',')}) 
+    and ('${startTime}' between startTime and endTime and '${endTime}' between startTime and endTime)`;
+
+    await query.sql(connection, sql);
+    //#endregion
+    return new Promise((resolve, reject) => {
+      resolve();
+    });
+  } catch (err) {
+    return new Promise((resolve, reject) => {
+      reject(err);
+    });
+  }
+}
+
 async function createEvent(req, res, next) {
   let b = req.body;
   let planId = +b.planId,
@@ -37,46 +120,16 @@ async function createEvent(req, res, next) {
     let connection = createConnection();
     connection.connect();
 
-    let projectName = (await query.one(connection, 'name', 'projects', 'id', projectId))[0].name;
-    //  插入数据
-    let eventId = (await query.insert(connection, 'events', {
-      belongTo: planId,
-      desc,
+    await _createEvent(connection, {
+      projectId,
+      planId,
+      planTime,
       startTime,
       endTime,
-      planTime,
-      projectId,
-      projectName
-    })).insertId;
-
-    //#region 创建users_events关系
-    //  根据传入的userid数组，找出它们的username
-    let rs = await query.sql(connection,
-      `SELECT id, username, jobId FROM users WHERE id IN (${members.join(',')})`);
-    //  写入users_events
-    let data = rs.map(({ id, username, jobId }) => `(${id}, "${username}", ${jobId}, ${eventId})`);
-    await query.inserts(connection, 'users_events', data.join(','));
-    //#endregion
-
-    //#region 创建events_tags关系
-    //  根据传入的tagid数组，找出tag的name
-    rs = await query.sql(connection,
-      `SELECT id, name FROM tags WHERE id in (${tags.join(',')})`);
-
-    //  写入events_tags表
-    data = rs.map(({ id, name }) => `(${id}, "${name}", ${eventId})`);
-    await query.inserts(connection, 'events_tags', data.join(','));
-    //#endregion
-
-    //#region 更新statistics表
-    let nMembers = b.members.toArray();
-
-    let sql = `update statistics set planTime = planTime + ${planTime}
-    where userId in (${nMembers.join(',')}) 
-    and ('${startTime}' between startTime and endTime and '${endTime}' between startTime and endTime)`;
-
-    await query.sql(connection, sql);
-    //#endregion
+      desc,
+      members,
+      tags
+    });
 
     connection.end();
     res.status(201).json({
@@ -87,4 +140,9 @@ async function createEvent(req, res, next) {
   }
 }
 
-module.exports = createEvent;
+
+
+module.exports = {
+  createEvent,
+  _createEvent
+};

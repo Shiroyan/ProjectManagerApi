@@ -36,6 +36,9 @@ var statistics = require('./routes/statistics/index');
 //  options 接口
 var options = require('./routes/options/index');
 
+//  options 接口
+var daily = require('./routes/daily/index');
+
 //  util
 require('./utils/date');
 require('./utils/str2Array');

@@ -15,14 +15,19 @@ let { isPM, isOnDuty } = require('../vertify');
 
 const UPLOAD_PATH = '/contracts';
 
+fs.existsSync(UPLOAD_PATH) || fs.mkdirSync(UPLOAD_PATH);
+
+
 let storage = multer.diskStorage({
   destination(req, file, cb) {
     let path = `${UPLOAD_PATH}/${req.body.name}`;
-    fs.existsSync(path) || fs.mkdirSync(path); 
+    fs.existsSync(path) || fs.mkdirSync(path);
     cb(null, path);
   },
   filename(req, file, cb) {
-    let filename = '1.doc';
+    let { originalname } = file;
+    let ext = originalname.match(/\..+/g)[0];
+    let filename = `1${ext}`;
     cb(null, filename);
   }
 });
@@ -32,15 +37,10 @@ let upload = multer({
   fileFilter(req, file, cb) {
     let filename = file.originalname;
     let size = file.size;
-    if (file.size >  2 * 1024 * 1024) {// 20M 
+    if (file.size > 2 * 1024 * 1024) {// 20M 
       cb(new ResponseError('文件过大, 已超过20M', 406));
     }
-    let reg = /\.(doc|docx)$/;
-    if (reg.test(filename)) {
-      cb(null, true);
-    } else {
-      cb(new ResponseError('不支持的文件类型', 406));
-    }
+    cb(null, true);
   }
 });
 

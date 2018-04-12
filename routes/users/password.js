@@ -56,7 +56,7 @@ async function changePwdByAdmin(req, res, next) {
 
   //  校验参数
   let error = validate(new Map([
-    ['uid', changeId],
+    ['userId', changeId],
     ['newPwd', newPwd]
   ]));
   if (error) {

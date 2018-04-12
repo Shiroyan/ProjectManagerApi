@@ -19,7 +19,7 @@ const FREE = -8;
 async function getRealReport(req, res, next) {
   let userId = +req.params.userId;
   let error = validate(new Map([
-    ['uid', userId]
+    ['userId', userId]
   ]));
   if (error) {
     return next(error);

@@ -32,7 +32,7 @@ const FORMAT = {
   dep: POSITIVE_NUM,
   job: POSITIVE_NUM,
   role: POSITIVE_NUM,
-  uid: POSITIVE_NUM,
+  userId: POSITIVE_NUM,
   projectId: POSITIVE_NUM,
   eventId: POSITIVE_NUM,
   projectName: str(3, 12),

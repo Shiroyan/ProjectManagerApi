@@ -1,15 +1,14 @@
 let createConnection = require('../../utils/create-connection');
 let query = require('../../utils/query');
 let validate = require('../../utils/validate');
+let { _createEvent } = require('./create');
+let { _deleteEvent } = require('./delete');
 
 /**
  * 更新事件，不允许变动创建事件的时间，若要变动请另新增事件
- * @param {*} req 
- * @param {*} res 
- * @param {*} next 
  */
 async function updateEvent(req, res, next) {
-  let eventId = req.params.eventId;
+  let eventId = +req.params.eventId;
   let b = req.body;
   let planId = +b.planId,
     projectId = +b.projectId,
@@ -25,6 +24,7 @@ async function updateEvent(req, res, next) {
   let tags = b.tags.toArray();
 
   let error = validate(new Map([
+    ['eventId', eventId],
     ['planId', planId],
     ['projectId', projectId],
     ['planTime', planTime],
@@ -76,17 +76,6 @@ async function updateEvent(req, res, next) {
     let nTagsStr = tags.join(',');
     //#endregion
 
-    //#region 更新users_events关系
-
-    //  根据传入的userid数组，找出它们的 username、jobId
-    rs = await query.sql(connection, `SELECT id, username, jobId FROM users WHERE id IN (${nMembersStr})`);
-
-    let data = rs.map(({ id, username, jobId }) => `(${id}, "${username}", ${jobId}, ${eventId})`);
-    if (nMembersStr !== oMembersStr) {
-      await query.delete(connection, 'users_events', 'eventId', eventId);
-      await query.inserts(connection, 'users_events', data.join(','));
-    }
-    //#endregion
 
     //#region 更新events_tags关系
 
@@ -100,17 +89,80 @@ async function updateEvent(req, res, next) {
     }
     //#endregion
 
-    //#region   更新statistics表 - 成员变动
-    let planOffset = planTime - old.planTime,
-      realOffset = realTime - old.realTime,
-      approvalOffset = approval - old.approval;
 
     //  新增成员
     let addMembers = Array.differ(nMembers, oMembers);
     //  删除成员
     let delMembers = Array.differ(oMembers, nMembers);
-    //  更新statistics表
-    //  删除的成员，需要减去原本的值
+
+    //  为新增成员克隆该事件
+    if (addMembers.length > 0) {
+      await _createEvent(connection, {
+        projectId, planId, planTime, startTime, endTime, desc, tags,
+        members: addMembers
+      });
+    }
+    //  若原本的负责人被移除了，那就相当于被删除了
+    if (delMembers.length > 0) {
+      await _deleteEvent(eventId, connection);
+    } else {
+      //更新statistics表
+      let planOffset = planTime - old.planTime,
+        realOffset = realTime - old.realTime,
+        approvalOffset = approval - old.approval;
+
+      let sql = `update statistics set
+    planTime = planTime + ${planOffset},
+    realTime = realTime + ${realOffset},
+    approval = approval + ${approvalOffset}
+    where userId in (${oMembers.join(',')})
+    and ('${startTime}' between startTime and endTime and '${endTime}' between startTime and endTime)`;
+      await query.sql(connection, sql);
+
+      await query.update(connection, `UPDATE events SET
+      \`desc\` = '${desc}',
+        startTime = '${startTime}',
+        endTime = '${endTime}',
+        planTime = ${planTime},
+        realTime = ${realTime},
+        approval = ${approval},
+        ratio = ${ratio},
+        process = ${process},
+        isFinished = ${isFinished} 
+        WHERE id = ${eventId} AND isDeleted = 0`);
+    }
+
+    connection.end();
+    res.status(200).json({
+      msg: '更新成功'
+    });
+
+  } catch (err) {
+    return next(err);
+  }
+}
+
+module.exports = updateEvent;
+
+
+/* 
+    //#region 更新users_events关系
+
+    //  根据传入的userid数组，找出它们的 username、jobId
+    rs = await query.sql(connection, `SELECT id, username, jobId FROM users WHERE id IN (${nMembersStr})`);
+
+    let data = rs.map(({ id, username, jobId }) => `(${id}, "${username}", ${jobId}, ${eventId})`);
+    if (nMembersStr !== oMembersStr) {
+      await query.delete(connection, 'users_events', 'eventId', eventId);
+      await query.inserts(connection, 'users_events', data.join(','));
+    }
+    //#endregion 
+*/
+
+
+/*
+
+   //  删除的成员，需要减去原本的值
     //  新增的成员，需要增加新的值 
     if (delMembers.length > 0) {
       let sql = `update statistics set
@@ -131,36 +183,4 @@ async function updateEvent(req, res, next) {
       and ('${startTime}' between startTime and endTime and '${endTime}' between startTime and endTime)`;
       await query.sql(connection, sql);
     }
-
-    let sql = `update statistics set
-      planTime = planTime + ${planOffset},
-      realTime = realTime + ${realOffset},
-      approval = approval + ${approvalOffset}
-      where userId in (${nMembers.join(',')})
-      and ('${startTime}' between startTime and endTime and '${endTime}' between startTime and endTime)`;
-    await query.sql(connection, sql);
-    //#endregion
-
-    await query.update(connection, 'events', {
-      desc,
-      startTime,
-      endTime,
-      planTime,
-      realTime,
-      approval,
-      ratio,
-      process,
-      isFinished
-    }, 'id', eventId);
-
-    connection.end();
-    res.status(200).json({
-      msg: '更新成功'
-    });
-
-  } catch (err) {
-    return next(err);
-  }
-}
-
-module.exports = updateEvent;
+ */

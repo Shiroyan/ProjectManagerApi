@@ -40,7 +40,7 @@ async function exchangeLeader(req, res, next) {
     let addLeaders = Array.differ(nLeaders, oLeaders);
     if (delLeaders.length > 0) {
       rs = await query.sql(connection,
-        `SELECT userId FROM users_events WHERE eventId IN (SELECT id FROM events WHERE projectId = ${projectId}) AND userId IN (${delLeaders})`);
+        `SELECT userId FROM users_events WHERE eventId IN (SELECT id FROM events WHERE isDeleted = 0 AND projectId = ${projectId}) AND userId IN (${delLeaders})`);
       if (rs.length > 0) {
         return next(new ResponseError('被移除的负责人尚有负责的事件', 406));
       }
