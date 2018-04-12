@@ -153,11 +153,25 @@ async function isEventExist(req, res, next) {
   }
 }
 
+async function isTableExist(connection, tableName) {
+
+  try {
+    let rs = await query.sql(connection,
+      `SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_NAME = '${tableName}'`)
+
+    return new Promise((resolve, reject) => resolve(rs.length !== 0));
+    
+  } catch (err) {
+    return new Promise((resolve, reject) => reject(false));
+  }
+}
+
 module.exports = {
   hasToken,
   isAdmin,
   isPM,
   isOnDuty,
   isPlanExist,
-  isEventExist
+  isEventExist,
+  isTableExist
 }

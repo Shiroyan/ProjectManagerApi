@@ -4,6 +4,9 @@ let query = require('../../utils/query');
 let createConnection = require('../../utils/create-connection');
 
 let createDaily = require('./create');
+let { getDailyAbstract, getDailyDetail } = require('./get');
+let updateDaily = require('./update');
+let deleteDaily = require('./delete');
 
 /**  
  * 每月创建一个日报表，命名格式为 daily_yyyyMM
@@ -20,7 +23,7 @@ schedule.scheduleJob('0 0 0 1 * *', async function () {
 
     await query.sql(connection, `CREATE TABLE daily_${dateStr} LIKE daily_tpl`);
     await query.sql(connection, `CREATE TABLE daily_events_${dateStr} LIKE daily_events_tpl`);
-   
+
     connection.end();
     console.log('结束脚本');
   } catch (err) {
@@ -29,5 +32,9 @@ schedule.scheduleJob('0 0 0 1 * *', async function () {
 });
 
 router.post('/', createDaily);
+router.get('/', getDailyAbstract);
+router.get('/:did', getDailyDetail);
+router.put('/', updateDaily);
+router.delete('/:did', deleteDaily);
 
 module.exports = router;

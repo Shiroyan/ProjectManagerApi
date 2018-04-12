@@ -61,7 +61,7 @@ async function getRealReport(req, res, next) {
     //#endregion    
 
     //#region 查找 可用工时/计划时间/忙闲时间/核准时间/效率/实际、计划偏差值
-    let sql = `select avaTime,planTime,approval,busyTime,planOffset,realOffset,effect from statistics 
+    let sql = `select avaTime,planTime,realTime,approval,busyTime,planOffset,realOffset,effect from statistics 
     where userId = ${userId} 
     and ('${startTime}' between startTime and endTime
     and '${endTime}' between startTime and endTime)`;
@@ -70,6 +70,7 @@ async function getRealReport(req, res, next) {
     if (rs) {
       avaTime = rs.avaTime;
       planTime = rs.planTime;
+      realTime = rs.realTime;
       approval = rs.approval;
       busyTime = rs.busyTime;
       planOffset = rs.planOffset;
@@ -107,7 +108,7 @@ async function getRealReport(req, res, next) {
     let temp = [];
     for (let [id, info] of projects) {
       info.id = id;
-      info.percentage = +(info.planTime / planTime).toFixed(2);
+      info.percentage = +(info.realTime / realTime).toFixed(2);
       temp.push(info);
     }
     //#endregion

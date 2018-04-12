@@ -1,6 +1,7 @@
 let createConnection = require('../../utils/create-connection');
 let query = require('../../utils/query');
 let validate = require('../../utils/validate');
+let { isTableExist } = require('../vertify');
 
 /**
  * 1. 插入daily_yyyyMM表，得到dailyId
@@ -22,13 +23,26 @@ async function createDaily(req, res, next) {
     return next(new ResponseError('非法的参数/缺少参数', 406));
   }
 
+  detail = JSON.parse(detail);
+  content = content.split('\n').map(val => `<p>${val}</p>`);
+
   let thisMonth = new Date().format('yyyyMM');
   let dailyDate = new Date(`${date} 18:00:00`);
   let dailyDateStr = dailyDate.format('yyyy-MM-dd hh:mm:ss');
+  let dailyTitle = `<h2>${dailyDate.format('dd日')}</h2>`;
+  content.unshift(dailyTitle);
+  content = content.join(' ');
 
   try {
     let connection = createConnection();
     connection.connect();
+
+    //  检查table是否存在
+    let isExist = await isTableExist(connection, `daily_${thisMonth}`);
+
+    if (!isExist) {
+      return next(new ResponseError('该月份日报表不存在', 500));
+    }
 
     //  插入daily表
     let dailyId = (await query.sql(connection,
@@ -41,7 +55,7 @@ async function createDaily(req, res, next) {
       let dailyRealTime = +detail[eventId];
 
       //  创建daily_event关系
-      await query.sql(connection, 
+      await query.sql(connection,
         `INSERT INTO daily_events_${thisMonth} (dailyId, eventId, userId, dailyRealTime, date) 
         VALUES (${dailyId}, ${eventId}, ${userId}, ${dailyRealTime}, '${dailyDateStr}')`);
 

@@ -36,8 +36,8 @@ var statistics = require('./routes/statistics/index');
 //  options 接口
 var options = require('./routes/options/index');
 
-//  options 接口
-var daily = require('./routes/daily/index');
+//  dailies 接口
+var dailies = require('./routes/dailies/index');
 
 //  util
 require('./utils/date');
@@ -70,7 +70,7 @@ app.all('*', (req, res, next) => {
   res.header('Access-Control-Max-Age', '3600');
   res.header('Access-Control-Allow-Credentials', true);
   if (req.method.toLowerCase() === 'options') {
-    res.send(200).end();
+    res.sendStatus(200).end();
   } else {
     next();
   }
@@ -85,6 +85,7 @@ app.use(`${baseUrl}events`, events);
 app.use(`${baseUrl}schedules`, schedules);
 app.use(`${baseUrl}statistics`, statistics);
 app.use(`${baseUrl}options`, options);
+app.use(`${baseUrl}dailies`, dailies);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

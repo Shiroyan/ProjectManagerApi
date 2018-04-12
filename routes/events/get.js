@@ -6,7 +6,9 @@ async function getEvents(req, res, next) {
   let userId = +req.id;
   let date = req.query.date || new Date();
 
-  date = new Date(date).format('yyyy-MM-dd');
+  date = new Date(date);
+  date.setHours(12);
+  date = date.format('yyyy-MM-dd hh:mm:ss');
 
   let error = validate(new Map([['userId', userId]]));
   if (error) {
