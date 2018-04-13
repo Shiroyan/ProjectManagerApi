@@ -46,11 +46,12 @@ async function updateProject(req, res, next) {
       return next(new ResponseError('已存在该项目名', 406));
     }
 
-    rs = await query.sql(connection, `SELECT memberIds FROM projects WHERE id = ${projectId}`);
+    rs = await query.sql(connection, `SELECT leaderIds, memberIds FROM projects WHERE id = ${projectId}`);
 
     //  对members进行处理
+    let leaderIds = rs[0].leaderIds.toArray();
     let members = b.members.toArray();              // 剔除非法的id
-    // members = members.filter(id => id !== req.id);  // leader不属于members 
+    members = members.filter(id => -1 !== leaderIds.indexOf(id));  // leader不属于members 
 
     //  校验更换的成员是否有负责的事件
     let curMembers = rs[0].memberIds.toArray();
