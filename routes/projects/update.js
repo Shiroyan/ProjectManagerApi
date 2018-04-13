@@ -51,7 +51,7 @@ async function updateProject(req, res, next) {
     //  对members进行处理
     let leaderIds = rs[0].leaderIds.toArray();
     let members = b.members.toArray();              // 剔除非法的id
-    members = members.filter(id => -1 !== leaderIds.indexOf(id));  // leader不属于members 
+    members = members.filter(id => leaderIds.indexOf(id) === -1);  // leader不属于members 
 
     //  校验更换的成员是否有负责的事件
     let curMembers = rs[0].memberIds.toArray();
