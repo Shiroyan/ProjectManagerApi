@@ -44,7 +44,7 @@ async function createProject(req, res, next) {
 
     //  对members进行处理
     let members = b.members.toArray();             // 剔除非法的id
-    members = members.filter(id => id !== req.id); // leader不属于members
+    // members = members.filter(id => id !== req.id); // leader不属于members
     project.memberIds = members.join(',');
 
 

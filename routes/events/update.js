@@ -106,23 +106,9 @@ async function updateEvent(req, res, next) {
     if (delMembers.length > 0) {
       await _deleteEvent(eventId, connection);
     } else {
-      //更新statistics表
-      let planOffset = planTime - old.planTime,
-        realOffset = realTime - old.realTime,
-        approvalOffset = approval - old.approval;
 
-      let sql = `update statistics set
-    planTime = planTime + ${planOffset},
-    realTime = realTime + ${realOffset},
-    approval = approval + ${approvalOffset}
-    where userId in (${oMembers.join(',')})
-    and ('${startTime}' between startTime and endTime and '${endTime}' between startTime and endTime)`;
-      await query.sql(connection, sql);
-
-      await query.update(connection, `UPDATE events SET
+      await query.sql(connection, `UPDATE events SET 
       \`desc\` = '${desc}',
-        startTime = '${startTime}',
-        endTime = '${endTime}',
         planTime = ${planTime},
         realTime = ${realTime},
         approval = ${approval},
@@ -130,6 +116,19 @@ async function updateEvent(req, res, next) {
         process = ${process},
         isFinished = ${isFinished} 
         WHERE id = ${eventId} AND isDeleted = 0`);
+
+      //更新statistics表
+      let planOffset = planTime - old.planTime,
+        realOffset = realTime - old.realTime,
+        approvalOffset = approval - old.approval;
+
+      let sql = `update statistics set
+  planTime = planTime + ${planOffset},
+  realTime = realTime + ${realOffset},
+  approval = approval + ${approvalOffset}
+  where userId in (${oMembers.join(',')})
+  and ('${startTime}' between startTime and endTime and '${endTime}' between startTime and endTime)`;
+      await query.sql(connection, sql);
     }
 
     connection.end();

@@ -83,7 +83,7 @@ async function getRealReport(req, res, next) {
     //#endregion
 
     //#region 查找用户参与的所有事件, 并找出它们参与的所有项目， 项目占用工时
-    sql = `select projectId,projectName,planTime, realTime from events 
+    sql = `select projectId,projectName,planTime, realTime, approval from events 
     where isDeleted = 0 AND
     id in (select eventId from users_events where userId = ${userId})
     and (startTime between '${startTime}' and '${endTime}' and endTime between '${startTime}' and '${endTime}')`;
@@ -91,15 +91,17 @@ async function getRealReport(req, res, next) {
     let events = await query.sql(connection, sql);
     let projects = new Map();
     events.forEach(event => {
-      let { projectId, projectName, planTime, realTime } = event;
+      let { projectId, projectName, planTime, realTime, approval } = event;
       let project = projects.get(projectId);
       if (project) {
         project.planTime += planTime;
         project.realTime += realTime;
+        project.approval += approval;
       } else {
         projects.set(projectId, {
           planTime,
           realTime,
+          approval,
           name: projectName
         });
       }
@@ -109,13 +111,14 @@ async function getRealReport(req, res, next) {
     for (let [id, info] of projects) {
       info.id = id;
       info.percentage = +(info.realTime / realTime).toFixed(2);
+      info.percentage2 = approval !== 0 ? +(info.approval / approval).toFixed(2) : 0;
       temp.push(info);
     }
     //#endregion
 
-    //#region 查找“上周” （相当于代码执行时的上上周）的 实际偏差值、效率。
-    let date = new Date();
-    date.setDate(date.getDate() - 14);
+    //#region 查找“上周”  实际偏差值、效率。
+    let date = new Date(startTime);
+    date.setDate(date.getDate() - 7);
     let lStartTime = Date.getWeekStart(date).format('yyyy-MM-dd'),
       lEndTime = Date.getWeekEnd(date).format('yyyy-MM-dd');
 
@@ -131,7 +134,8 @@ async function getRealReport(req, res, next) {
     //#endregion
 
     //#region 统计忙闲持续、优差持续
-    sql = `select busyTime, effect from statistics where userId = ${userId}`;
+    sql = `SELECT busyTime, effect FROM statistics WHERE userId = ${userId} 
+    AND endTime <= '${endTime}'`;
     rs = await query.sql(connection, sql);
     let len = rs.length;
     for (let i = 0; i < len - 1; i++) {

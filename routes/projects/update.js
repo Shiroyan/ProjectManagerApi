@@ -50,7 +50,7 @@ async function updateProject(req, res, next) {
 
     //  对members进行处理
     let members = b.members.toArray();              // 剔除非法的id
-    members = members.filter(id => id !== req.id);  // leader不属于members 
+    // members = members.filter(id => id !== req.id);  // leader不属于members 
 
     //  校验更换的成员是否有负责的事件
     let curMembers = rs[0].memberIds.toArray();
@@ -79,6 +79,8 @@ async function updateProject(req, res, next) {
     //  更新项目资料
     project.memberIds = members.join(',');
     await query.update(connection, 'projects', project, 'id', projectId);
+    await query.sql(connection, 
+      `UPDATE events SET projectName = '${project.name}' WHERE projectId = ${projectId}`);
 
     connection.end();
 

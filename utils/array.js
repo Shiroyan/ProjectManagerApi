@@ -7,5 +7,9 @@ module.exports = (function () {
    */
   Array.differ = function (arr1, arr2) {
     return arr1.filter(val => !arr2.includes(val));
+  };
+
+  Array.same = function (arr1, arr2) {
+    return arr1.filter(val => arr2.includes(val));
   }
 })();

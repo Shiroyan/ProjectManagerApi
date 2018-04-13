@@ -11,8 +11,12 @@ const RED_BG = 'FFFFC0CB';
 const RED_FONT = 'FFFF0000';
 const REAL = 'real';
 const PLAN = 'plan';
+const EXCELLENT = 1.2;
+const BAD = 0.8;
+const BUSY = 8;
+const FREE = -8;
 
-fs.existsSync(REPORT_PATH) || fs.mkdirSync(REPORT_PATH); 
+fs.existsSync(REPORT_PATH) || fs.mkdirSync(REPORT_PATH);
 
 async function getDownloadUrl(req, res, next) {
   let type = req.query.type || PLAN;
@@ -52,8 +56,8 @@ async function genExcel(req, res, next) {
   let startTime = req.query.startTime || date;
   let endTime = req.query.endTime || date;
 
-  startTime = Date.getWeekStart(startTime).format('yyyy-MM-dd');
-  endTime = Date.getWeekEnd(endTime).format('yyyy-MM-dd');
+  startTime = Date.getWeekStart(startTime).format('yyyy-MM-dd hh:mm:ss');
+  endTime = Date.getWeekEnd(endTime).format('yyyy-MM-dd hh:mm:ss');
 
   //#region 检验日期是否在同一周、相差是否超过7天
   let error = path.has(REAL) ?
@@ -127,7 +131,11 @@ async function genExcel(req, res, next) {
     { header: '计划-可用', key: 'busyTime', width: 14 },
     { header: '实际-计划', key: 'planOffset', width: 14 },
     { header: '实际-可用', key: 'realOffset', width: 14 },
+    { header: '实际-可用(上周)', key: 'lRealOffset', width: 14 },
     { header: '核准/实际', key: 'effect', width: 14 },
+    { header: '核准/实际(上周)', key: 'lEffect', width: 14 },
+    { header: '忙闲持续周数', key: 'busyCnt', width: 14 },
+    { header: '优差持续周数', key: 'badCnt', width: 14 },
   ];
   all.columns = header;
   //#endregion
@@ -164,22 +172,74 @@ async function genExcel(req, res, next) {
     statistics.planOffset,
     statistics.realOffset
   FROM users, statistics 
-  WHERE (users.id = statistics.userId AND users.id <> 0)
+  WHERE (users.id = statistics.userId AND users.id <> 0 AND users.isDeleted = 0)
   AND ('${startTime}' BETWEEN statistics.startTime AND statistics.endTime 
     AND '${endTime}' BETWEEN statistics.startTime AND statistics.endTime)`;
 
+    //  定义上周时间
+    let lastWeek = new Date(startTime);
+    lastWeek.setDate(lastWeek.getDate() - 7);
+    let lStartTime = Date.getWeekStart(lastWeek).format('yyyy-MM-dd hh:mm:ss');
+    let lEndTime = Date.getWeekEnd(lastWeek).format('yyyy-MM-dd hh:mm:ss');
+
     let rs = await query.sql(connection, sql);
-    rs.length > 0 && rs.forEach((temp, index) => {
-      let { username, avaTime, planTime, realTime,
+    for (let [index, temp] of rs.entries()) {
+      let { id, username, avaTime, planTime, realTime,
         approval, busyTime, effect, planOffset, realOffset } = temp;
       let dep = temp.depName,
         job = temp.jobName,
         city = temp.cityName;
+      let lRealOffset = 0,
+        lEffect = 0,
+        badCnt = 0,
+        busyCnt = 0;
+
+      //  上周 实际偏差值 效率
+      let rs2 = await query.sql(connection,
+        `SELECT realOffset, effect FROM statistics WHERE userId = ${id} AND 
+        ('${lStartTime}' BETWEEN startTime AND endTime AND '${lEndTime}' BETWEEN startTime AND endTime)`);
+      if (rs2.length > 0) {
+        lRealOffset = rs2[0].realOffset;
+        lEffect = rs2[0].effect;
+      }
+
+      //#region 统计忙闲持续、优差持续
+      sql = `SELECT busyTime, effect FROM statistics WHERE userId = ${id} 
+    AND endTime <= '${endTime}'`;
+      rs2 = await query.sql(connection, sql);
+      let len = rs2.length;
+      for (let i = 0; i < len - 1; i++) {
+        let lastWeek = rs[i],
+          thisWeek = rs[i + 1];
+        let lEff = lastWeek.effect,
+          lBusyTime = lastWeek.busyTime,
+          tEff = thisWeek.effect,
+          tBusyTime = thisWeek.busyTime;
+
+        if (lEff >= EXCELLENT && tEff >= EXCELLENT) {
+          badCnt--;
+        } else if (lEff <= BAD && tEff <= BAD) {
+          badCnt++;
+        } else {
+          badCnt = 0;
+        }
+
+        if (lBusyTime >= BUSY && tBusyTime >= BUSY) {
+          busyCnt++;
+        } else if (lBusyTime <= FREE && tBusyTime <= FREE) {
+          busyCnt--;
+        } else {
+          busyCnt = 0;
+        }
+      }
+
+      //#endregion
+
       all.addRow({
         index, city, dep, job, username, avaTime, planTime, realTime,
-        approval, busyTime, effect, planOffset, realOffset
+        approval, busyTime, effect, planOffset, realOffset, lRealOffset, lEffect, busyCnt, badCnt
       });
-    });
+    }
     //#endregion
 
     //#region 筛选出产品部门id

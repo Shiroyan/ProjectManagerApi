@@ -6,6 +6,7 @@ let createConnection = require('../../utils/create-connection');
 let getPlanReport = require('./plan');
 let getRealReport = require('./real');
 let { genExcel, getDownloadUrl } = require('./excel');
+let { genExcelMonthly, getMonthReportUrl } = require('./month');
 
 /**
  * 每个星期一凌晨0：00 自动生成本星期，下星期的统计表
@@ -102,6 +103,8 @@ router.get('/', stateChange);
 router.get('/excel', getDownloadUrl);
 router.get('/excel/plan', genExcel);
 router.get('/excel/real', genExcel);
+router.get('/excel/monthreport', genExcelMonthly);
+router.get('/excel/monthreport/url', getMonthReportUrl);
 router.get('/:userId/plan', getPlanReport);
 router.get('/:userId/real', getRealReport);
 
