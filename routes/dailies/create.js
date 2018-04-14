@@ -24,6 +24,8 @@ async function createDaily(req, res, next) {
   }
 
   detail = JSON.parse(detail);
+  content = content.replace(/<[^>]+>/g, '');      // 过滤html标签，防止脚本攻击
+  content = content.replace(/[\"|\']+/g, '\\\'');   // 冒号转义
   content = content.split('\n').map(val => `<p>${val}</p>`);
 
   let thisMonth = new Date().format('yyyyMM');

@@ -129,7 +129,8 @@ async function genExcelMonthly(req, res, next) {
       { header: '序号', key: 'userId' },
       { header: '部门', key: 'dep', width: 20 },
       { header: '姓名', key: 'username', width: 15 },
-      { header: '总投入时间', key: 'totalRealTime', width: 20 },
+      { header: '总实际时间', key: 'totalRealTime', width: 20 },
+      { header: '总核准时间', key: 'totalApprovalTime', width: 20 },
     ];
     all.columns = header;
 
@@ -180,17 +181,23 @@ async function genExcelMonthly(req, res, next) {
     //#region 填充数据
     let rowStart = 3;
     const SUM_REALTIME = 'SUM(realTime)';
+    const SUM_APPROVAL = 'SUM(approval)';
     let users = await query.sql(connection,
       `SELECT id AS userId, username, depName FROM users WHERE isDeleted = 0 AND id <> 0`);
     for (let { userId, username, depName } of users) {
 
       //  一个月的实际之和
-      let totalRealTime = await query.sql(connection,
-        `SELECT ${SUM_REALTIME} FROM statistics WHERE userId = ${userId} AND 
+      let rs = await query.sql(connection,
+        `SELECT ${SUM_REALTIME} ${SUM_APPROVAL} FROM statistics WHERE userId = ${userId} AND 
         startTime BETWEEN '${monthStartStr}' AND '${monthEndStr}' AND 
         endTime BETWEEN '${monthStartStr}' AND '${monthEndStr}'`);
-      totalRealTime = totalRealTime[0] ? totalRealTime[0][`${SUM_REALTIME}`] : 0;
 
+      let totalRealTime = 0, totalApprovalTime = 0;
+      if (rs[0]) {
+        totalRealTime = rs[0][`${SUM_REALTIME}`];
+        totalApprovalTime = rs[0][`${SUM_APPROVAL}`];
+      }
+      
       //  找出该用户这个月参与过的项目
       let projects = await query.sql(connection,
         `SELECT projectId FROM users_projects WHERE userId = ${userId}`);
@@ -229,6 +236,7 @@ async function genExcelMonthly(req, res, next) {
         username,
         dep: depName,
         totalRealTime,
+        totalApprovalTime,
         ...realTimeMap,
       });
     }

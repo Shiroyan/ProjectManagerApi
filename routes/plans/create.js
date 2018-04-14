@@ -12,7 +12,7 @@ async function createPlan(req, res, next) {
   let error = validate(new Map([
     ['projectId', projectId],
     ['process', process],
-    ['projectName', name]
+    ['planName', name]
   ]));
   if (error) {
     return next(error);
