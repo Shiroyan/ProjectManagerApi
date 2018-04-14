@@ -188,7 +188,7 @@ async function genExcelMonthly(req, res, next) {
 
       //  一个月的实际之和
       let rs = await query.sql(connection,
-        `SELECT ${SUM_REALTIME} ${SUM_APPROVAL} FROM statistics WHERE userId = ${userId} AND 
+        `SELECT ${SUM_REALTIME}, ${SUM_APPROVAL} FROM statistics WHERE userId = ${userId} AND 
         startTime BETWEEN '${monthStartStr}' AND '${monthEndStr}' AND 
         endTime BETWEEN '${monthStartStr}' AND '${monthEndStr}'`);
 
