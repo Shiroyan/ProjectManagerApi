@@ -135,7 +135,7 @@ async function genExcelMonthly(req, res, next) {
     all.columns = header;
 
     let step = weekCount + 3;
-    let colStart = 5;
+    let colStart = header.length + 1;
     //  查找这个月的所有项目
     let allProjects = await query.sql(connection,
       `SELECT id, name FROM projects WHERE isDeleted = 0 AND 
