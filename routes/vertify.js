@@ -29,6 +29,7 @@ async function hasToken(req, res, next) {
       }
 
       let connection = createConnection();
+      connection.connect();
 
       let rs = (await query.sql(connection,
         `SELECT roleId FROM users WHERE id = ${decode.id} AND isDeleted = 0`))[0];
