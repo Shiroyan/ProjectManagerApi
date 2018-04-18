@@ -53,17 +53,19 @@ async function _createEvent(connection, data) {
     //#endregion
 
     //#region 创建events_tags关系
-    rs = await query.sql(connection,
-      `SELECT id, name FROM tags WHERE id in (${tags.join(',')})`);  // 找出tag的name
+    if (tags.length > 0) {
+      rs = await query.sql(connection,
+        `SELECT id, name FROM tags WHERE id in (${tags.join(',')})`);  // 找出tag的name
 
-    //  写入events_tags表
-    let ETData = [];
-    for (let eventId of eventIds) {
-      for (let tag of rs) {
-        ETData.push(`(${tag.id}, '${tag.name}', ${eventId})`);
+      //  写入events_tags表
+      let ETData = [];
+      for (let eventId of eventIds) {
+        for (let tag of rs) {
+          ETData.push(`(${tag.id}, '${tag.name}', ${eventId})`);
+        }
       }
+      await query.sql(connection, `INSERT INTO events_tags (tagId, tagName, eventId) VALUES ${ETData.join(',')}`);
     }
-    await query.sql(connection, `INSERT INTO events_tags (tagId, tagName, eventId) VALUES ${ETData.join(',')}`);
     //#endregion
 
 
@@ -103,7 +105,6 @@ async function createEvent(req, res, next) {
     ['endTime', endTime],
     ['desc', desc],
     ['members', members],
-    ['tags', tags]
   ]));
   if (error) {
     return next(error);
@@ -120,6 +121,7 @@ async function createEvent(req, res, next) {
   try {
     connection = createConnection();
 
+    desc = desc.transfer();
     await _createEvent(connection, {
       projectId,
       planId,

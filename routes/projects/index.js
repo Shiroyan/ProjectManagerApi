@@ -46,7 +46,7 @@ let upload = multer({
 
 router.post('/', [isPM, upload.single('contract'), createProject]);
 router.put('/:projectId/leader', [isPM, isOnDuty, exchangeLeader]);
-router.put('/:projectId', [isPM, isOnDuty, upload.single('contract'), updateProject]);
+router.post('/:projectId', [isPM, isOnDuty, upload.single('contract'), updateProject]);
 router.get('/options', getStages);
 router.delete('/:projectId', [isPM, isOnDuty, deleteProject]);
 router.get('/', getProjectsAbstract);

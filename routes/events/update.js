@@ -34,7 +34,6 @@ async function updateEvent(req, res, next) {
     ['process', process],
     ['desc', desc],
     ['members', members],
-    ['tags', tags],
     ['isFinished', isFinished]
   ]));
   if (error) {
@@ -45,7 +44,7 @@ async function updateEvent(req, res, next) {
   let connection;
   try {
     connection = createConnection();
-    
+
 
     //#region  旧数据
     let old = (await query.sql(connection, `SELECT planTime, realTime, approval, startTime, endTime FROM events WHERE id = ${eventId} AND isDeleted = 0`))[0];
@@ -81,12 +80,17 @@ async function updateEvent(req, res, next) {
     //#region 更新events_tags关系
 
     //  根据传入的tagid数组，找出tag的name
-    rs = await query.sql(connection, `SELECT id, name FROM tags WHERE id in (${nTagsStr})`);
-    //  写入events_tags表
-    data = rs.map(({ id, name }) => `(${id}, "${name}", ${eventId})`);
+    let data;
+    if (nTagsStr.length > 0) {
+      rs = await query.sql(connection, `SELECT id, name FROM tags WHERE id in (${nTagsStr})`);
+      //  写入events_tags表
+      data = rs.map(({ id, name }) => `(${id}, "${name}", ${eventId})`);
+    }
     if (nTagsStr !== oTagsStr) {
-      await query.delete(connection, 'events_tags', 'eventId', eventId);
-      await query.inserts(connection, 'events_tags', data.join(','));
+      await query.sql(connection, `DELETE FROM events_tags WHERE eventId = ${eventId}`);
+      if (data) {
+        await query.inserts(connection, 'events_tags', data.join(','));
+      }
     }
     //#endregion
 
@@ -108,6 +112,7 @@ async function updateEvent(req, res, next) {
       await _deleteEvent(eventId, connection);
     } else {
 
+      desc = desc.transfer();
       await query.sql(connection, `UPDATE events SET 
       \`desc\` = '${desc}',
         planTime = ${planTime},

@@ -38,7 +38,10 @@ async function getProjectsDetail(req, res, next) {
     }
 
     //  生成合同下载url
-    let contract = `/projects/contracts/${project.id}`;
+    let contract = '';
+    if (project.contract) {
+      contract = `/projects/contracts/${project.id}`;
+    }
 
     let { id, name, startTime, endTime, firstParty, contractVal, stageId, stageName, process } = project;
 

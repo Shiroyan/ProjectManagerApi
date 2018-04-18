@@ -7,6 +7,8 @@ async function updatePlan(req, res, next) {
   let planId = +req.params.planId;
   let process = +req.body.process;
   let { name } = req.body;
+  name = name.transfer();
+  
 
   let error = validate(new Map([
     ['projectId', projectId],

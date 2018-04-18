@@ -6,8 +6,8 @@ async function createProject(req, res, next) {
 
   let b = req.body;
   let project = {
-    name: b.name,
-    firstParty: b.firstParty,
+    name: b.name.transfer(),
+    firstParty: b.firstParty.transfer(),
     startTime: b.startTime,
     endTime: b.endTime,
     leaderIds: req.id,

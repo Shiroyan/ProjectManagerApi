@@ -8,8 +8,8 @@ async function updateProject(req, res, next) {
   let projectId = +req.params.projectId;
   let b = req.body;
   let project = {
-    name: b.name,
-    firstParty: b.firstParty,
+    name: b.name.transfer(),
+    firstParty: b.firstParty.transfer(),
     startTime: b.startTime,
     endTime: b.endTime,
     stageId: +b.stageId,

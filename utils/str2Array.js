@@ -14,5 +14,14 @@ module.exports = (() => {
   String.prototype.has = function (str) {
     return (this.indexOf(str) !== -1)
   }
+  //  对 ' " 进行转义
+  String.prototype.transfer = function() {
+    let temp = this;
+    let reg1 = /'+/g;
+    // let reg2 = /"+/g;
+    temp = temp.replace(reg1, '\\\'');
+    // temp = temp.replace(reg2, '\\\"');
+    return temp;
+  }
 
 })();

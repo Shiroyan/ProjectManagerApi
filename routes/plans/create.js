@@ -8,6 +8,7 @@ async function createPlan(req, res, next) {
   let projectId = +b.projectId;
   let process = +b.process || 0;
   let { name } = b;
+  name = name.transfer();
   
   let error = validate(new Map([
     ['projectId', projectId],
