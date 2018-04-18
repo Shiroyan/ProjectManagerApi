@@ -28,9 +28,9 @@ async function deleteDaily(req, res, next) {
   let dailyMonth = new Date(date);
   let dailyMonthStr = dailyMonth.format('yyyyMM');
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     //  检查table是否存在
     let isExist = await isTableExist(connection, `daily_events_${dailyMonthStr}`);
@@ -46,14 +46,14 @@ async function deleteDaily(req, res, next) {
     let sum = 0;
     for (let { eventId, dailyRealTime } of dailyEvents) {
       //  更新未删除的事件
-      let affectedRows = (await query.sql(connection, 
+      let affectedRows = (await query.sql(connection,
         `UPDATE events SET realTime = realTime - ${dailyRealTime} WHERE 
         id = ${eventId} AND isDeleted = 0`)).affectedRows;
       if (affectedRows > 0) {
         sum += dailyRealTime;
       }
 
-      await query.sql(connection, 
+      await query.sql(connection,
         `DELETE FROM daily_events_${dailyMonthStr} 
         WHERE eventId = ${eventId} AND dailyId = ${dailyId}`);
     }
@@ -67,13 +67,14 @@ async function deleteDaily(req, res, next) {
     await query.sql(connection, `UPDATE statistics SET realTime = realTime - ${sum} WHERE
     userId = ${userId} AND (('${startTime}' BETWEEN startTime AND endTime) AND ('${endTime}' BETWEEN startTime AND endTime))`);
 
-    connection.end();
 
     res.status(200).json({
       msg: '删除成功',
     });
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

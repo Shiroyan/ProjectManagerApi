@@ -38,9 +38,10 @@ async function _delete(req, res, next) {
   //   return next(new ResponseError('不可更改此项', 403));
   // }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
 
     //  查找该项是否有被使用
     let sql = `SELECT id FROM users WHERE ${paramKey} = ${id}`;
@@ -60,19 +61,19 @@ async function _delete(req, res, next) {
     rs = await query.sql(connection,
       `DELETE FROM ${tableName} WHERE id = ${id}`);
 
-    connection.end();
 
     if (rs.affectedRows > 0) {
       res.status(200).json({
         msg: '删除成功'
       });
     } else {
-      return next(new ResponseError('删除失败, id不存在', 406));
+      next(new ResponseError('删除失败, id不存在', 406));
     }
 
-
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

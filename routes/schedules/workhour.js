@@ -14,9 +14,10 @@ async function updateWorkHour(req, res, next) {
 
   let avaTime = req.body.avaTime;
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
 
     let sql = `UPDATE statistics SET avaTime = ${avaTime} 
     WHERE userId = ${req.id} 
@@ -28,13 +29,14 @@ async function updateWorkHour(req, res, next) {
       return next(new ResponseError('不存在该时段的工时', 406));
     }
 
-    connection.end();
     res.status(200).json({
       msg: '汇报成功'
     });
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 
@@ -52,10 +54,9 @@ async function updateWorkHourByPM(req, res, next) {
     return next(new ResponseError('请选择成员！', 406));
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
-
+    connection = createConnection();
 
     let sql = `UPDATE statistics SET avaTime = ${avaTime} 
     WHERE userId IN (${members.join(',')}) 
@@ -67,13 +68,14 @@ async function updateWorkHourByPM(req, res, next) {
       return next(new ResponseError('不存在该时段的工时', 406));
     }
 
-    connection.end();
     res.status(200).json({
       msg: '汇报成功'
     });
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

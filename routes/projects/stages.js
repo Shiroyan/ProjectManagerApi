@@ -3,16 +3,18 @@ let query = require('../../utils/query');
 let validate = require('../../utils/validate');
 
 async function getStages(req, res, next) {
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
     let sql = 'SELECT id, name, `desc`, status FROM stages';
     let rs = await query.sql(connection, sql);
 
-    connection.end();
     res.status(200).json(rs);
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

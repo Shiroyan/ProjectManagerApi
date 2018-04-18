@@ -121,9 +121,10 @@ async function genExcelMonthly(req, res, next) {
   //#endregion
 
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
     //#region 设置表头
     let header = [
       { header: '序号', key: 'userId' },
@@ -244,12 +245,12 @@ async function genExcelMonthly(req, res, next) {
 
     await workBook.xlsx.writeFile(filename);
 
-    connection.end();
-
     res.download(filename);
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

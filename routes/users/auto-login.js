@@ -6,17 +6,17 @@ let config = require('../../config');
 
 
 async function autoLogin(req, res, next) {
+  let connection;
   try {
-    let connection = createConnection();
+    connection = createConnection();
     let sql = `SELECT id,username,password,cityId,cityName,depId,depName,jobId,jobName,roleId FROM users WHERE id = ${req.id} and isDeleted = 0`;
     
     let rs = (await query.sql(connection, sql))[0];
 
-    connection.end();
     let { username, cityId, cityName, depId, depName, jobId, jobName } = rs;
     let role = rs.roleId;
     res.status(200).json({
-      msg: '登陆成功',
+      msg: '登录成功',
       userId: req.id,
       username, cityId, cityName, depId, depName, jobId, jobName, role,
       isAdmin: role === 0,
@@ -24,6 +24,8 @@ async function autoLogin(req, res, next) {
     });
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

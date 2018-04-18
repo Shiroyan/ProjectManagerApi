@@ -3,8 +3,9 @@ let query = require('../../utils/query');
 let validate = require('../../utils/validate');
 
 async function getOptions(req, res, next) {
+  let connection;
   try {
-    let connection = createConnection({
+    connection = createConnection({
       multipleStatements: true
     });
 
@@ -20,7 +21,6 @@ async function getOptions(req, res, next) {
       citys = rs[2];
       roles = rs[3];
 
-    connection.end();
     res.status(200).json({
       deps,
       jobs,
@@ -29,6 +29,8 @@ async function getOptions(req, res, next) {
     });
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

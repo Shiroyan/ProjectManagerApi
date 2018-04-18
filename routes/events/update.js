@@ -42,9 +42,10 @@ async function updateEvent(req, res, next) {
   }
 
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
 
     //#region  旧数据
     let old = (await query.sql(connection, `SELECT planTime, realTime, approval, startTime, endTime FROM events WHERE id = ${eventId} AND isDeleted = 0`))[0];
@@ -131,13 +132,14 @@ async function updateEvent(req, res, next) {
       await query.sql(connection, sql);
     }
 
-    connection.end();
     res.status(200).json({
       msg: '更新成功'
     });
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

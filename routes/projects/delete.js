@@ -14,9 +14,9 @@ async function deleteProject(req, res, next) {
     return next(error);
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     //  找出该项目下的所有plan, 并删除
     let plans = await query.sql(connection,
@@ -31,13 +31,14 @@ async function deleteProject(req, res, next) {
       `UPDATE projects SET isDeleted = 1 , deletedAt = '${new Date().format('yyyy-MM-dd hh:mm:ss')}'
       WHERE id = ${projectId}`);
 
-    connection.end();
     res.status(200).json({
       msg: '删除成功'
     });
 
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();    
   }
 }
 module.exports = deleteProject;

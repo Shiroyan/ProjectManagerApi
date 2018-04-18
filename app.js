@@ -44,6 +44,12 @@ require('./utils/date');
 require('./utils/str2Array');
 require('./utils/array');
 
+function handleDisconnect() {
+  connection = mysql.createConnection(db_config); // Recreate the connection, since
+  // the old one cannot be reused.
+
+}
+
 
 var app = express();
 const baseUrl = '/';

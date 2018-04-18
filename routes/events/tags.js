@@ -3,17 +3,18 @@ let query = require('../../utils/query');
 let validate = require('../../utils/validate');
 
 async function getTags(req, res, next) {
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     let rs = await query.sql(connection, 'SELECT id, name FROM tags');
 
-    connection.end();
     res.status(200).json(rs);
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 
@@ -26,9 +27,9 @@ async function addTag(req, res, next) {
     return next(error);
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     let rs = await query.one(connection, 'name', 'tags', 'name', name);
     if (rs[0]) {
@@ -39,12 +40,13 @@ async function addTag(req, res, next) {
       name
     });
 
-    connection.end();
     res.status(201).json({
       msg: '添加成功'
     });
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

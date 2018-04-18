@@ -23,12 +23,6 @@ async function register(req, res, next) {
     return next(error);
   }
 
-  let connection = createConnection({
-    multipleStatements: true,
-  });
-
-  connection.connect();
-
   let account = b.account,
     password = b.password,
     username = b.username,
@@ -37,11 +31,15 @@ async function register(req, res, next) {
     jobId = +b.job,
     roleId = +b.job === 5 ? 1 : 2;
 
+  let connection;
   try {
+    connection = createConnection({
+      multipleStatements: true,
+    });
+
     // 确认是否为重复的account
     let rs = await query.all(connection, 'users', 'account', account);
     if (rs.length !== 0) {
-      connection.end();
       return next(new ResponseError('账号已存在', 406));
     }
 
@@ -66,13 +64,14 @@ async function register(req, res, next) {
     await query.sql(connection,
       `INSERT INTO statistics (userId, startTime, endTime) VALUES (${userId},'${nWStartTime}','${nWEndTime}')`);
     //#endregion
-    
-    connection.end();
+
     res.status(201).json({
       msg: '注册成功'
     });
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

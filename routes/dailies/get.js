@@ -17,25 +17,25 @@ async function getDailyAbstract(req, res, next) {
   dailyMonth = new Date(dailyMonth);
   dailyMonthStr = dailyMonth.format('yyyyMM');
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     //  检查table是否存在
     let isExist = await isTableExist(connection, `daily_${dailyMonthStr}`);
 
     if (!isExist) {
-      connection.end();
       res.status(200).json([]);
     } else {
       let dailies = await query.sql(connection,
         `SELECT dailyId AS id, content, date FROM daily_${dailyMonthStr} WHERE userId = ${userId} ORDER BY date DESC`);
 
-      connection.end();
       res.status(200).json(dailies);
     }
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 
@@ -60,13 +60,12 @@ async function getDailyDetail(req, res, next) {
   }
 
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+
 
     let isExist = await isTableExist(connection, `daily_${dailyMonthStr}`);
 
     if (!isExist) {
-      connection.end();
       res.status(200).json([]);
     } else {
       let daily = await query.sql(connection,
@@ -99,7 +98,7 @@ async function getDailyDetail(req, res, next) {
       });
     }
   } catch (err) {
-    return next(err);
+    next(err);
   }
 }
 

@@ -46,10 +46,9 @@ async function updateDaily(req, res, next) {
   content.unshift(dailyTitle);
   content = content.join(' ');
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
-
+    connection = createConnection();
 
     //  检查table是否存在
     let isExist = await isTableExist(connection, `daily_${dailyMonthStr}`);
@@ -100,13 +99,14 @@ async function updateDaily(req, res, next) {
     await query.sql(connection,
       `UPDATE daily_${dailyMonthStr} SET content = '${content}' WHERE dailyId = ${dailyId}`);
 
-    connection.end();
     res.status(200).json({
       msg: '更新成功'
     });
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

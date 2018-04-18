@@ -40,9 +40,9 @@ async function add(req, res, next) {
     return next(new ResponseError('缺少参数', 406));
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     //  是否存在同名项
     let rs = await query.sql(connection,
@@ -59,18 +59,19 @@ async function add(req, res, next) {
 
     rs = await query.sql(connection, sql);
 
-    connection.end();
 
     if (rs.affectedRows > 0) {
       res.status(200).json({
         msg: '添加成功'
       });
     } else {
-      return next(new ResponseError('添加失败, 未知原因', 500));
+      next(new ResponseError('添加失败, 未知原因', 500));
     }
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

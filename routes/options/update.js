@@ -46,9 +46,10 @@ async function update(req, res, next) {
   //   return next(new ResponseError('不可更改此项', 403));
   // }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
 
     //  是否存在同名项
     let rs = await query.sql(connection,
@@ -82,15 +83,16 @@ async function update(req, res, next) {
       let sql = `UPDATE ${table} SET ${paramName} = '${name}' WHERE ${paramKey} = ${id}`;
       rs = await query.sql(connection, sql);
     } else {
-      return next(new ResponseError('更新失败, 不存在此id', 406));
+      next(new ResponseError('更新失败, 不存在此id', 406));
     }
 
-    connection.end();
     res.status(200).json({
       msg: '更新成功',
     });
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

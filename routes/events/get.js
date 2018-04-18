@@ -15,9 +15,9 @@ async function getEvents(req, res, next) {
     return next(error);
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     let sql = `SELECT id, \`desc\` FROM events 
     WHERE id IN (SELECT eventId FROM users_events WHERE userId = ${userId}) 
@@ -27,7 +27,9 @@ async function getEvents(req, res, next) {
 
     res.status(200).json(events);
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

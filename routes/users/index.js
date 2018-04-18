@@ -29,9 +29,10 @@ async function deleteUser(req, res, next) {
     return next(error);
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
     //  检查是否有正在参与的项目
     let projects = await query.sql(connection,
       `SELECT id FROM projects WHERE
@@ -47,18 +48,20 @@ async function deleteUser(req, res, next) {
       deletedAt = '${new Date().format('yyyy-MM-dd hh:mm:ss')}'
       WHERE id = ${deleteId}`);
 
-    connection.end();
     res.status(200).json({
       msg: '删除成功'
-    }).end();
+    });
 
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 
 //  获取用户列表
 async function getUsersList(req, res, next) {
+  let connection;
   try {
     let sql = `SELECT id, username, cityId, cityName, depId, depName, jobId, jobName
     FROM users WHERE isDeleted = 0 AND id <> 0`;
@@ -66,14 +69,15 @@ async function getUsersList(req, res, next) {
       sql = `SELECT account, id, username, cityId, cityName, depId, depName, jobId, jobName, roleId, roleName
       FROM users WHERE isDeleted = 0`;
     }
-    let connection = createConnection();
+    connection = createConnection();
     let rs = await query.sql(connection, sql);
-    connection.end();
 
-    res.status(200).json(rs).end();
+    res.status(200).json(rs);
 
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

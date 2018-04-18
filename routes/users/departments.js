@@ -5,8 +5,9 @@ let query = require('../../utils/query');
 let validate = require('../../utils/validate');
 
 async function divideUsersByDep(req, res, next) {
+  let connection;
   try {
-    let connection = createConnection({
+    connection = createConnection({
       multipleStatements: true
     });
     //  从departments表中获取部门的id和name 并去除管理员一项
@@ -33,18 +34,20 @@ async function divideUsersByDep(req, res, next) {
         users
       });
     });
-    connection.end();
     res.status(200).json({ deps: data });
 
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 
 async function divideUsersByJob(req, res, next) {
   let depId = req.params.depId;
+  let connection;
   try {
-    let connection = createConnection({
+    connection = createConnection({
       multipleStatements: true
     });
     //  从jobs表中获取岗位的id和name, 并去除管理员一项
@@ -77,11 +80,12 @@ async function divideUsersByJob(req, res, next) {
       });
     });
 
-    connection.end();
     res.status(200).json(data);
 
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

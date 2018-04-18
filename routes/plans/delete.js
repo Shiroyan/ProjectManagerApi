@@ -35,20 +35,22 @@ async function _deletePlan(projectId, planId, connection) {
 async function deletePlan(req, res, next) {
   let planId = +req.params.planId;
   let projectId = +req.body.projectId;
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
 
     //  删除计划
     await _deletePlan(projectId, planId, connection);
 
-    connection.end();
 
     res.status(200).json({
       msg: '删除成功'
     });
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

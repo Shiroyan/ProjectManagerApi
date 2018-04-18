@@ -14,9 +14,10 @@ async function finishEvent(req, res, next) {
     return next(error);
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+
 
     let msg = isFinished ? '事件完成' : '取消完成';
 
@@ -28,14 +29,14 @@ async function finishEvent(req, res, next) {
       return next(new ResponseError('没有权限/该事件已被删除', 403));
     }
 
-    connection.end();
-
     res.status(200).json({
       msg
     });
-  
+
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

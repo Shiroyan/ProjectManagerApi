@@ -10,9 +10,9 @@ async function getProjectsAbstract(req, res, next) {
   let type = +req.query.type || 0;
   let page = +req.query.page || 1;
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     //  关于阶段状态
     //  status = 2    属于立项中
@@ -77,7 +77,6 @@ async function getProjectsAbstract(req, res, next) {
       });
     }
 
-    connection.end();
     res.status(200).json({
       total: projectsCnt,
       pageSize: PAGE_COUNT,
@@ -86,7 +85,9 @@ async function getProjectsAbstract(req, res, next) {
     });
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

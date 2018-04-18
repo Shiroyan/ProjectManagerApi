@@ -6,8 +6,6 @@ async function init() {
   console.log('===> 开始数据库的初始化操作\n');
   try {
     let connection = createConnection();
-    connection.connect();
-
 
     console.log('===> 开始选项初始化配置\n');        
     await query.sql(connection, `UPDATE citys SET id = 0 WHERE name = '深圳'`);

@@ -148,10 +148,10 @@ async function genExcel(req, res, next) {
   title.alignment = alignmentStyle;
   //#endregion
 
-
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
 
     //#region 填充 "计划-执行-核准" Sheet数据
     let sql = `SELECT DISTINCT
@@ -427,11 +427,12 @@ async function genExcel(req, res, next) {
 
     await workBook.xlsx.writeFile(filename);
 
-    connection.end();
     res.download(filename);
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

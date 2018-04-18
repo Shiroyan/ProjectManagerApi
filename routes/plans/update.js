@@ -18,9 +18,10 @@ async function updatePlan(req, res, next) {
     return next(error);
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
 
     //  避免planId与projectId对不上
     await query.update(connection, 'plans', {
@@ -28,13 +29,14 @@ async function updatePlan(req, res, next) {
       process
     }, 'id', planId);
 
-    connection.end();
     
     res.status(200).json({
       msg: '更新成功'
     });
   } catch(err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 module.exports = updatePlan;

@@ -17,9 +17,10 @@ async function getSchedules(req, res, next) {
   let beginStr = new Date(year, month - 1, 1).format('yyyy-MM-dd hh:mm:ss');
   let endStr = new Date(year, month, 0, 23, 59, 59, 999).format('yyyy-MM-dd hh:mm:ss');
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
 
     let sql = `SELECT id, \`desc\`, startTime, endTime, projectId, projectName 
     FROM events WHERE id IN (SELECT eventId FROM users_events WHERE userId = ${req.id}) AND isDeleted = 0 and isFinished = 0
@@ -54,11 +55,12 @@ async function getSchedules(req, res, next) {
         });
       }
     });
-    connection.end();
     res.status(200).json(schedules);
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 
 }

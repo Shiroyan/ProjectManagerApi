@@ -37,9 +37,10 @@ async function getPlanReport(req, res, next) {
   }
   //#endregion
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
 
     //  查找给定时间的可用工时
     let sql = `select planTime, avaTime, busyTime from statistics 
@@ -83,7 +84,6 @@ async function getPlanReport(req, res, next) {
       temp.push(info);
     }
 
-    connection.end();
     res.status(200).json({
       startTime,
       endTime,
@@ -95,7 +95,9 @@ async function getPlanReport(req, res, next) {
 
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

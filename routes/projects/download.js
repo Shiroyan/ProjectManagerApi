@@ -11,22 +11,21 @@ async function downloadContract(req, res, next) {
   if (error) {
     return next(error);
   }
-
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     let rs = (await query.one(connection, 'contract','projects', 'id', projectId))[0];
-    
-    connection.end();
-    
+        
     if (rs) {
       res.sendFile(rs.contract);
     } else {
-      return next(new ResponseError('项目不存在', 406));
+      next(new ResponseError('项目不存在', 406));
     }
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();    
   }
 }
 

@@ -17,34 +17,40 @@ async function changePwdByUser(req, res, next) {
     return next(error);
   }
 
+  let connection;
   try {
-    let connection = createConnection();
+    connection = createConnection();
     let rs = (await query.all(connection, 'users', 'account', ac))[0];
 
     oPwd = (await query.sql(connection, `SELECT PASSWORD('${oPwd}')`))[0][`PASSWORD('${oPwd}')`];
     nPwd = (await query.sql(connection, `SELECT PASSWORD('${nPwd}')`))[0][`PASSWORD('${nPwd}')`];
     
+    let error;
     //  新旧密码不能一样
     if (nPwd === oPwd) {
-      return next(new ResponseError('新旧密码不能一样', 406));
+      error = next(new ResponseError('新旧密码不能一样', 406));
     }
 
     if (!rs) {
-      return next(new ResponseError('账号不存在', 406));
+      error = next(new ResponseError('账号不存在', 406));
     } else if (rs.password !== oPwd) {
-      return next(new ResponseError('旧密码错误', 406));
+      error = next(new ResponseError('旧密码错误', 406));
+    } 
+    if (error) {
+      return next(error);
     } else {
       await query.update(connection, 'users', {
         password: nPwd
       }, 'account', ac);
 
-      connection.end();
       res.status(200).json({
         msg: '修改成功'
       });
     }
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 
@@ -64,12 +70,10 @@ async function changePwdByAdmin(req, res, next) {
   }
 
   try {
-    let connection = createConnection();
+    connection = createConnection();
     let affectedRow = await query.update(connection, 'users', {
       password: newPwd
     }, 'id', changeId);
-
-    connection.end();
 
     res.status(200).json({
       msg: '修改成功'

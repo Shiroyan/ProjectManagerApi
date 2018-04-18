@@ -30,10 +30,9 @@ async function createProject(req, res, next) {
     return next(error);
   }
 
-
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     //  检验是否存在同名项目
     let rs = await query.sql(connection,
@@ -60,15 +59,15 @@ async function createProject(req, res, next) {
 
     rs = await query.inserts(connection, 'users_projects', data);
 
-    connection.end();
-
     //  返回
     res.status(201).json({
       msg: '项目创建成功'
     });
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

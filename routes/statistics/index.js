@@ -14,9 +14,10 @@ let { genExcelMonthly, getMonthReportUrl } = require('./month');
  */
 schedule.scheduleJob('0 0 0 * * 1', async function () {
   console.log('开始执行批量更新 <统计表> 脚本');
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
     let nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
 
@@ -31,10 +32,11 @@ schedule.scheduleJob('0 0 0 * * 1', async function () {
     await query.sql(connection, `insert into statistics (userId, startTime, endTime) values ${data1.join(' , ')}`);
     await query.sql(connection, `insert into statistics (userId, startTime, endTime) values ${data2.join(' , ')}`);
 
-    connection.end();
     console.log('结束脚本');
   } catch (err) {
     console.error('脚本异常: ', err);
+  } finally {
+    connection && connection.end();
   }
 });
 
@@ -53,11 +55,12 @@ async function stateChange(req, res, next) {
   }
   //#endregion
 
+  let connection;
   try {
-    let connection = createConnection({
+    connection = createConnection({
       multipleStatements: true
     });
-    connection.connect();
+    
 
     let rs = await query.multi(connection, [
       `select username from users where createAt between '${startTime}' and '${endTime}'`,
@@ -95,7 +98,9 @@ async function stateChange(req, res, next) {
       delProjects
     });
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

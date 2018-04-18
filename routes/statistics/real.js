@@ -41,9 +41,10 @@ async function getRealReport(req, res, next) {
   //#endregion
 
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
 
     //#region 变量预定义
     let avaTime = 0,
@@ -165,7 +166,6 @@ async function getRealReport(req, res, next) {
 
     //#endregion
 
-    connection.end();
     res.status(200).json({
       startTime,
       endTime,
@@ -186,7 +186,9 @@ async function getRealReport(req, res, next) {
 
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

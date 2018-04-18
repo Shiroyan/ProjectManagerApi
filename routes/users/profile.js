@@ -7,15 +7,14 @@ let validate = require('../../utils/validate');
  * 获取用户资料
  */
 async function getProfile(req, res, next) {
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     let rs = (await query.sql(connection,
       `SELECT id, username, cityId, cityName, depId, depName, jobId, jobName, roleId
       FROM users WHERE id = ${req.id} AND isDeleted = 0`))[0];
 
-    connection.end();
     let { id, username, cityId, cityName, depId, depName, jobId, jobName } = rs;
     let role = rs.roleId;
     res.status(200).json({
@@ -26,6 +25,8 @@ async function getProfile(req, res, next) {
     });
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();    
   }
 }
 
@@ -51,10 +52,10 @@ async function updateProfile(req, res, next) {
     return next(error);
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
-
+    connection = createConnection();
+    
     let rs = await query.update(connection, 'users', {
       username,
       cityId,
@@ -62,13 +63,14 @@ async function updateProfile(req, res, next) {
       jobId,
     }, 'id', req.id);
 
-    connection.end();
     res.status(200).json({
       msg: '更新资料成功'
     });
 
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 
@@ -99,10 +101,10 @@ async function updateProfileByAdmin(req, res, next) {
     return next(error);
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
-
+    connection = createConnection();
+    
     let data = { username, cityId, depId, jobId };
 
     let sql = `UPDATE users SET
@@ -112,8 +114,6 @@ async function updateProfileByAdmin(req, res, next) {
     }
     sql += ` WHERE id = ${userId} AND isDeleted = 0`
     let rs = await query.sql(connection, sql);
-
-    connection.end();
 
     if (rs.affectedRows === 0) {
       return next(new ResponseError(406, '该用户不存在/已被删除'));
@@ -125,6 +125,8 @@ async function updateProfileByAdmin(req, res, next) {
 
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

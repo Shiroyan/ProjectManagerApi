@@ -16,18 +16,20 @@ let deleteDaily = require('./delete');
  */
 schedule.scheduleJob('0 0 0 1 * *', async function () {
   console.log('开始执行创建 <日报表> <日报事件关系表> 脚本');
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
     let dateStr = new Date().format('yyyyMM');
 
     await query.sql(connection, `CREATE TABLE daily_${dateStr} LIKE daily_tpl`);
     await query.sql(connection, `CREATE TABLE daily_events_${dateStr} LIKE daily_events_tpl`);
 
-    connection.end();
     console.log('结束脚本');
   } catch (err) {
     console.error('脚本异常: ', err);
+  } finally {
+    connection && connection.end();
   }
 });
 

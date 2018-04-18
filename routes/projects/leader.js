@@ -15,9 +15,9 @@ async function exchangeLeader(req, res, next) {
   let error = validate(new Map([['projectId', projectId]]));
   if (error) return next(error);
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
     let rs;
     //#region 检查它们是否为PM
     rs = await query.sql(connection,
@@ -55,12 +55,13 @@ async function exchangeLeader(req, res, next) {
     //  替换负责人
     await query.sql(connection, `UPDATE projects SET leaderIds = '${nLeaders.join(',')}' WHERE id = ${projectId}`);
 
-    connection.end();
     res.status(200).json({
       msg: '转让成功'
     });
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 
 }

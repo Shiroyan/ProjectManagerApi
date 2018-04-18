@@ -12,9 +12,9 @@ async function getProjectsDetail(req, res, next) {
     return next(error);
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     let project = (await query.sql(connection,
       `SELECT id, name, leaderIds, memberIds, startTime, endTime, firstParty, contract, contractVal, stageId, stageName, process
@@ -42,7 +42,6 @@ async function getProjectsDetail(req, res, next) {
 
     let { id, name, startTime, endTime, firstParty, contractVal, stageId, stageName, process } = project;
 
-    connection.end();
     res.status(200).json({
       id,
       name,
@@ -58,7 +57,9 @@ async function getProjectsDetail(req, res, next) {
       contract
     });
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

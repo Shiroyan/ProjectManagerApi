@@ -35,9 +35,9 @@ async function createDaily(req, res, next) {
   content.unshift(dailyTitle);
   content = content.join(' ');
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     //  检查table是否存在
     let isExist = await isTableExist(connection, `daily_${thisMonth}`);
@@ -75,12 +75,13 @@ async function createDaily(req, res, next) {
     await query.sql(connection, `UPDATE statistics SET realTime = realTime + ${sum} WHERE
     userId = ${userId} AND (('${startTime}' BETWEEN startTime AND endTime) AND ('${endTime}' BETWEEN startTime AND endTime))`);
 
-    connection.end();
     res.status(200).json({
       msg: '汇报成功',
     });
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

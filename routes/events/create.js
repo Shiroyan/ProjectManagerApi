@@ -116,9 +116,9 @@ async function createEvent(req, res, next) {
     return next(new ResponseError('起止时间需在同一周内', 406));
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
 
     await _createEvent(connection, {
       projectId,
@@ -131,12 +131,13 @@ async function createEvent(req, res, next) {
       tags
     });
 
-    connection.end();
     res.status(201).json({
       msg: '创建成功'
     });
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

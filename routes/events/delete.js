@@ -44,19 +44,20 @@ async function _deleteEvent(eventId, connection) {
 async function deleteEvent(req, res, next) {
   let eventId = +req.params.eventId;
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
-
+    connection = createConnection();
+  
     await _deleteEvent(eventId, connection);
 
-    connection.end();
     res.status(200).json({
       msg: '删除成功'
     });
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

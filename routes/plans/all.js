@@ -12,9 +12,10 @@ async function getAllPlans(req, res, next) {
     return next(error);
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
 
     let plans = await query.sql(connection,
       `SELECT id, name, process FROM plans WHERE belongTo = ${projecId} AND isDeleted = 0`);
@@ -41,11 +42,12 @@ async function getAllPlans(req, res, next) {
       data.push(temp);
     }
 
-    connection.end();
     res.status(200).json(data);
 
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 

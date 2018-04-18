@@ -28,12 +28,11 @@ async function login(req, res, next) {
     return next(error);
   }
 
-  let connection = createConnection();
-
-  connection.connect();
+  let connection;
   let rs;
 
   try {
+    connection = createConnection();
     let sql = `SELECT id,username,password,cityId,cityName,depId,depName,jobId,jobName,roleId FROM users WHERE account = '${ac}' and isDeleted = 0`;
     rs = await query.sql(connection, sql);
     rs = rs[0];
@@ -49,7 +48,6 @@ async function login(req, res, next) {
     if (rs.password != userPwd) {
       return next(new ResponseError('密码错误', 406));
     }
-    connection.end();
 
     let token = jwt.sign({
       id: rs.id
@@ -71,8 +69,9 @@ async function login(req, res, next) {
 
   } catch (err) {
     next(err);
+  } finally {
+    connection && connection.end();
   }
-
 }
 
 

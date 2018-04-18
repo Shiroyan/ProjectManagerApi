@@ -35,9 +35,10 @@ async function updateProject(req, res, next) {
     return next(error);
   }
 
+  let connection;
   try {
-    let connection = createConnection();
-    connection.connect();
+    connection = createConnection();
+    
 
     // 检验项目名是否已存在
     rs = await query.sql(connection,
@@ -83,14 +84,15 @@ async function updateProject(req, res, next) {
     await query.sql(connection, 
       `UPDATE events SET projectName = '${project.name}' WHERE projectId = ${projectId}`);
 
-    connection.end();
 
     //  返回
     res.status(200).json({
       msg: '更新项目资料成功'
     });
   } catch (err) {
-    return next(err);
+    next(err);
+  } finally {
+    connection && connection.end();
   }
 }
 
