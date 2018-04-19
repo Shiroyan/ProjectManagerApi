@@ -2,8 +2,8 @@ let router = require('express').Router();
 let createConnection = require('../../utils/create-connection');
 let query = require('../../utils/query');
 let validate = require('../../utils/validate');
-let { isPM } = require('../vertify');
-let { updateWorkHour, updateWorkHourByPM } = require('./workhour');
+let { isPM, isAdmin } = require('../vertify');
+let { updateWorkHour, updateWorkHourByPM, updateWorkHourAll } = require('./workhour');
 
 async function getSchedules(req, res, next) {
   let { year, month } = req.params;
@@ -67,5 +67,6 @@ async function getSchedules(req, res, next) {
 router.get('/:year/:month', getSchedules);
 router.post('/workhour', updateWorkHour);
 router.put('/workhour', [isPM, updateWorkHourByPM]);
+router.put('/workhour/all', [isAdmin, updateWorkHourAll]);
 
 module.exports = router;

@@ -83,12 +83,13 @@ async function getDailyDetail(req, res, next) {
       let events = [];
       for (let { eventId, dailyRealTime } of dailyEvents) {
         let event = await query.sql(connection,
-          `SELECT \`desc\` FROM events WHERE id = ${eventId} AND isDeleted = 0`);
+          `SELECT \`desc\`, projectName FROM events WHERE id = ${eventId} AND isDeleted = 0`);
         if (event.length > 0) {
           events.push({
             dailyRealTime,
             id: eventId,
-            desc: event[0].desc
+            desc: event[0].desc,
+            projectName: event[0].projectName
           });
         }
       }

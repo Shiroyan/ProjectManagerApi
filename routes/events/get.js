@@ -19,7 +19,7 @@ async function getEvents(req, res, next) {
   try {
     connection = createConnection();
 
-    let sql = `SELECT id, \`desc\` FROM events 
+    let sql = `SELECT id, \`desc\`, projectName FROM events 
     WHERE id IN (SELECT eventId FROM users_events WHERE userId = ${userId}) 
     AND isDeleted = 0
     AND ('${date}' BETWEEN startTime AND endTime AND '${date}' BETWEEN startTime AND endTime)`;

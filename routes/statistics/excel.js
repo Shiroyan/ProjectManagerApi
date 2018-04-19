@@ -172,7 +172,7 @@ async function genExcel(req, res, next) {
     statistics.planOffset,
     statistics.realOffset
   FROM users, statistics 
-  WHERE (users.id = statistics.userId AND users.id <> 0 AND users.isDeleted = 0)
+  WHERE (users.id = statistics.userId AND users.id <> 0 AND (users.isDeleted = 0 OR users.deletedAt > '${startTime}'))
   AND ('${startTime}' BETWEEN statistics.startTime AND statistics.endTime 
     AND '${endTime}' BETWEEN statistics.startTime AND statistics.endTime)`;
 

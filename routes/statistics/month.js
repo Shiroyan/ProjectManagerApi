@@ -184,7 +184,7 @@ async function genExcelMonthly(req, res, next) {
     const SUM_REALTIME = 'SUM(realTime)';
     const SUM_APPROVAL = 'SUM(approval)';
     let users = await query.sql(connection,
-      `SELECT id AS userId, username, depName FROM users WHERE isDeleted = 0 AND id <> 0`);
+      `SELECT id AS userId, username, depName FROM users WHERE (isDeleted = 0 OR deletedAt > '${monthStartStr}') AND id <> 0`);
     for (let { userId, username, depName } of users) {
 
       //  一个月的实际之和
