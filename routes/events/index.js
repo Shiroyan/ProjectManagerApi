@@ -10,7 +10,6 @@ let { deleteEvent } = require('./delete');
 
 router.get('/tags', getTags);
 router.get('/', getEvents);
-router.post('/tags', [isPM, addTag]);
 router.post('/', [isPM, isOnDuty, isPlanExist, createEvent]);
 router.put('/:eventId', [isPM, isOnDuty, isPlanExist, isEventExist, updateEvent]);
 router.delete('/:eventId', [isPM, isOnDuty, isPlanExist, isEventExist, deleteEvent]);

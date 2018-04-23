@@ -84,8 +84,8 @@ async function getUsersList(req, res, next) {
 
 router.post('/login', login);
 router.post('/autologin', autoLogin);
-router.get('/departments', divideUsersByDep);
-router.get('/departments/:depId', divideUsersByJob);
+// router.get('/departments', divideUsersByDep);
+// router.get('/departments/:depId', divideUsersByJob);
 router.post('/logout', logout);
 router.get('/options', options);
 router.put('/password', changePwdByUser);

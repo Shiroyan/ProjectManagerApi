@@ -134,8 +134,8 @@ async function genExcel(req, res, next) {
     { header: '实际-可用(上周)', key: 'lRealOffset', width: 14 },
     { header: '核准/实际', key: 'effect', width: 14 },
     { header: '核准/实际(上周)', key: 'lEffect', width: 14 },
-    { header: '忙闲持续周数', key: 'busyCnt', width: 14 },
-    { header: '优差持续周数', key: 'badCnt', width: 14 },
+    { header: '忙闲持续周数(忙+、闲-)', key: 'busyCnt', width: 20 },
+    { header: '优差持续周数(差+、优-)', key: 'badCnt', width: 20 },
   ];
   all.columns = header;
   //#endregion

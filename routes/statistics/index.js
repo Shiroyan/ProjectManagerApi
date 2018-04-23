@@ -29,7 +29,7 @@ schedule.scheduleJob('0 0 0 * * 1', async function () {
 
     let data1 = rs.map(temp => `(${temp.id}, '${startTime}', '${endTime}')`);
     let data2 = rs.map(temp => `(${temp.id}, '${nWStartTime}', '${nWEndTime}')`);
-    await query.sql(connection, `insert into statistics (userId, startTime, endTime) values ${data1.join(' , ')}`);
+    // await query.sql(connection, `insert into statistics (userId, startTime, endTime) values ${data1.join(' , ')}`);
     await query.sql(connection, `insert into statistics (userId, startTime, endTime) values ${data2.join(' , ')}`);
 
     console.log('结束脚本');
