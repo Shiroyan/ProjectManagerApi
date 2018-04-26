@@ -26,7 +26,7 @@ async function getProfile(req, res, next) {
   } catch (err) {
     next(err);
   } finally {
-    connection && connection.end();    
+    connection && connection.end();
   }
 }
 
@@ -55,8 +55,15 @@ async function updateProfile(req, res, next) {
   let connection;
   try {
     connection = createConnection();
-    
-    let rs = await query.update(connection, 'users', {
+
+    // 确认是否为重复的username
+    let rs = await query.sql(connection,
+      `SELECT id FROM users WHERE id <> ${req.id} AND username = '${username}' AND isDeleted = 0`);
+    if (rs.length !== 0) {
+      return next(new ResponseError('用户名已存在', 406));
+    }
+
+    rs = await query.update(connection, 'users', {
       username,
       cityId,
       depId,
@@ -104,7 +111,14 @@ async function updateProfileByAdmin(req, res, next) {
   let connection;
   try {
     connection = createConnection();
-    
+
+    // 确认是否为重复的username
+    let rs = await query.sql(connection,
+      `SELECT id FROM users WHERE id <> ${userId} AND username = '${username}' AND isDeleted = 0`);
+    if (rs.length !== 0) {
+      return next(new ResponseError('用户名已存在', 406));
+    }
+
     let data = { username, cityId, depId, jobId };
 
     let sql = `UPDATE users SET
@@ -113,7 +127,7 @@ async function updateProfileByAdmin(req, res, next) {
       sql += `, password = PASSWORD('${newPwd}')`;
     }
     sql += ` WHERE id = ${userId} AND isDeleted = 0`
-    let rs = await query.sql(connection, sql);
+    rs = await query.sql(connection, sql);
 
     if (rs.affectedRows === 0) {
       return next(new ResponseError(406, '该用户不存在/已被删除'));

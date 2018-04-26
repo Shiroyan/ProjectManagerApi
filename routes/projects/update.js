@@ -83,6 +83,8 @@ async function updateProject(req, res, next) {
     await query.update(connection, 'projects', project, 'id', projectId);
     await query.sql(connection, 
       `UPDATE events SET projectName = '${project.name}' WHERE projectId = ${projectId}`);
+    await query.sql(connection, 
+      `UPDATE evaluation SET projectName = '${project.name}' WHERE projectId = ${projectId}`);
 
 
     //  返回

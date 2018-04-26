@@ -37,10 +37,11 @@ async function register(req, res, next) {
       multipleStatements: true,
     });
 
-    // 确认是否为重复的account
-    let rs = await query.all(connection, 'users', 'account', account);
+    // 确认是否为重复的account/username
+    let rs = await query.sql(connection, 
+      `SELECT id FROM users WHERE (account = '${account}' OR username = '${username}') AND isDeleted = 0`);
     if (rs.length !== 0) {
-      return next(new ResponseError('账号已存在', 406));
+      return next(new ResponseError('账号/用户名已存在', 406));
     }
 
     password = (await query.sql(connection, `SELECT PASSWORD('${password}')`))[0][`PASSWORD('${password}')`];

@@ -39,16 +39,13 @@ var options = require('./routes/options/index');
 //  dailies 接口
 var dailies = require('./routes/dailies/index');
 
+//  evaluation 接口
+var evaluation = require('./routes/evaluation/index');
+
 //  util
 require('./utils/date');
 require('./utils/str2Array');
 require('./utils/array');
-
-function handleDisconnect() {
-  connection = mysql.createConnection(db_config); // Recreate the connection, since
-  // the old one cannot be reused.
-
-}
 
 
 var app = express();
@@ -92,6 +89,7 @@ app.use(`${baseUrl}schedules`, schedules);
 app.use(`${baseUrl}statistics`, statistics);
 app.use(`${baseUrl}options`, options);
 app.use(`${baseUrl}dailies`, dailies);
+app.use(`${baseUrl}evaluation`, evaluation);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -122,6 +120,7 @@ app.use(function (err, req, res, next) {
       res.status(err.status).json({
         error: '接口不存在，路径出错'
       });
+      break;
     default:
       res.status(500).json({
         error: err.message || '未知错误',

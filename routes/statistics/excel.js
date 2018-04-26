@@ -44,6 +44,11 @@ async function getDownloadUrl(req, res, next) {
 }
 
 
+//  保留2位小数
+function getRounding(num) {
+  return +num.toFixed(2);
+}
+
 async function genExcel(req, res, next) {
   let { path } = req;
   let date = new Date();
@@ -141,7 +146,7 @@ async function genExcel(req, res, next) {
   //#endregion
 
   //#region 设置 "人力分析表头"
-  analysis.mergeCells('A1:F1');
+  analysis.mergeCells('A1:H1');
   let title = analysis.getCell('A1');
   title.value = '人力计划-使用-考核分（岗位、部门、城市）分析表';
   title.font = { size: 14, bold: true };
@@ -151,7 +156,7 @@ async function genExcel(req, res, next) {
   let connection;
   try {
     connection = createConnection();
-    
+
 
     //#region 填充 "计划-执行-核准" Sheet数据
     let sql = `SELECT DISTINCT
@@ -311,19 +316,21 @@ async function genExcel(req, res, next) {
     //  按岗位
     analysis.addRows([
       [], //  空行
-      ['岗位类型', '人数', '总可用时间', '总计划时间', '总实际投入时间', '总核准投入时间']
+      ['岗位类型', '人数', '总可用时间', '总计划时间', '总实际投入时间', '总核准投入时间', '总计划时间/总可用时间(%)', '总核准时间/总可用时间(%)']
     ]);
     for (let [key, o] of divideByJob) {
-      analysis.addRow([o.jobName, o.cnt, o.avaTime, o.planTime, o.realTime, o.approval]);
+      analysis.addRow([o.jobName, o.cnt, o.avaTime, o.planTime, o.realTime, o.approval,
+      `${getRounding(o.planTime / o.avaTime * 100)}%`, `${getRounding(o.approval / o.avaTime * 100)}%`]);
     }
 
     //  按部门
     analysis.addRows([
       [], [],
-      ['部门', '人数', '总可用时间', '总计划时间', '总实际投入时间', '总核准投入时间']
+      ['部门', '人数', '总可用时间', '总计划时间', '总实际投入时间', '总核准投入时间', '总计划时间/总可用时间(%)', '总核准时间/总可用时间(%)']
     ]);
     for (let [key, o] of divideByDep) {
-      analysis.addRow([o.depName, o.cnt, o.avaTime, o.planTime, o.realTime, o.approval]);
+      analysis.addRow([o.depName, o.cnt, o.avaTime, o.planTime, o.realTime, o.approval,
+      `${getRounding(o.planTime / o.avaTime * 100)}%`, `${getRounding(o.approval / o.avaTime * 100)}%`]);
     }
 
     //  按城市
@@ -337,17 +344,19 @@ async function genExcel(req, res, next) {
     };
     analysis.addRows([
       [], [],
-      ['城市', '人数', '总可用时间', '总计划时间', '总实际投入时间', '总核准投入时间']
+      ['城市', '人数', '总可用时间', '总计划时间', '总实际投入时间', '总核准投入时间', '总计划时间/总可用时间(%)', '总核准时间/总可用时间(%)']
     ]);
     for (let [key, o] of divideByCity) {
-      analysis.addRow([o.cityName, o.cnt, o.avaTime, o.planTime, o.realTime, o.approval]);
+      analysis.addRow([o.cityName, o.cnt, o.avaTime, o.planTime, o.realTime, o.approval,
+      `${getRounding(o.planTime / o.avaTime * 100)}%`, `${getRounding(o.approval / o.avaTime * 100)}%`]);
       total.cnt += o.cnt;
       total.avaTime += o.avaTime;
       total.planTime += o.planTime;
       total.realTime += o.realTime;
       total.approval += o.approval;
     }
-    analysis.addRow([total.name, total.cnt, total.avaTime, total.planTime, total.realTime, total.approval]);
+    analysis.addRow([total.name, total.cnt, total.avaTime, total.planTime, total.realTime, total.approval,
+    `${getRounding(total.planTime / total.avaTime * 100)}%`, `${getRounding(total.approval / total.avaTime * 100)}%`]);
 
     //  按城市 - 除去产品部   
     total = {
@@ -360,17 +369,19 @@ async function genExcel(req, res, next) {
     };
     analysis.addRows([
       [], [], ['除产品'],
-      ['城市', '人数', '总可用时间', '总计划时间', '总实际投入时间', '总核准投入时间']
+      ['城市', '人数', '总可用时间', '总计划时间', '总实际投入时间', '总核准投入时间', '总计划时间/总可用时间(%)', '总核准时间/总可用时间(%)']
     ]);
     for (let [key, o] of divideByCity2) {
-      analysis.addRow([o.cityName, o.cnt, o.avaTime, o.planTime, o.realTime, o.approval]);
+      analysis.addRow([o.cityName, o.cnt, o.avaTime, o.planTime, o.realTime, o.approval,
+      `${getRounding(o.planTime / o.avaTime * 100)}%`, `${getRounding(o.approval / o.avaTime * 100)}%`]);
       total.cnt += o.cnt;
       total.avaTime += o.avaTime;
       total.planTime += o.planTime;
       total.realTime += o.realTime;
       total.approval += o.approval;
     }
-    analysis.addRow([total.name, total.cnt, total.avaTime, total.planTime, total.realTime, total.approval]);
+    analysis.addRow([total.name, total.cnt, total.avaTime, total.planTime, total.realTime, total.approval,
+    `${getRounding(total.planTime / total.avaTime * 100)}%`, `${getRounding(total.approval / total.avaTime * 100)}%`]);
     //#endregion
 
     //#region 调整Excel格式
@@ -406,7 +417,7 @@ async function genExcel(req, res, next) {
     }
     //#endregion
     //#region 表2
-    for (let i = 3; i <= 6; i++) {
+    for (let i = 3; i <= 8; i++) {
       let col = analysis.getColumn(i);
       col.alignment = alignmentStyle;
       (i >= 3) && (analysis.getColumn(i).width = 25);

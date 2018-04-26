@@ -36,15 +36,13 @@ async function updateDaily(req, res, next) {
 
 
   detail = JSON.parse(detail);
-  content = content.split('\n').map(val => `<p>${val}</p>`);
+  content = content.replace(/<[^>]+>/g, '');      // 过滤html标签，防止脚本攻击
+  content = content.replace(/[\"|\']+/g, '\\\'');   // 冒号转义
 
   let dailyMonth = new Date(date);
   let dailyMonthStr = dailyMonth.format('yyyyMM');
   let dailyDate = new Date(`${date} 18:00:00`);
   let dailyDateStr = dailyDate.format('yyyy-MM-dd hh:mm:ss');
-  let dailyTitle = `<h2>${dailyDate.format('dd日')}</h2>`;
-  content.unshift(dailyTitle);
-  content = content.join(' ');
 
   let connection;
   try {

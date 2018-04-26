@@ -35,7 +35,7 @@ const FORMAT = {
   userId: POSITIVE_NUM,
   projectId: POSITIVE_NUM,
   eventId: POSITIVE_NUM,
-  projectName: str(3, 20),
+  projectName: str(3, 25),
   firstParty: str(2, 20),
   members: { type: 'Array<number>' },
   tags: { type: 'Array<number>' },

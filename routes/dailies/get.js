@@ -27,10 +27,21 @@ async function getDailyAbstract(req, res, next) {
     if (!isExist) {
       res.status(200).json([]);
     } else {
+      let data = [];
       let dailies = await query.sql(connection,
         `SELECT dailyId AS id, content, date FROM daily_${dailyMonthStr} WHERE userId = ${userId} ORDER BY date DESC`);
 
-      res.status(200).json(dailies);
+      for (let { id, content, date } of dailies) {
+        content = content.split('\n').map(val => `<p>${val}</p>`);
+        let dailyTitle = `<h2>${new Date(date).format('dd日')}</h2>`;
+        content.unshift(dailyTitle);
+        content = content.join(' ');
+        data.push({
+          id, content, date
+        });
+      }
+
+      res.status(200).json(data);
     }
   } catch (err) {
     next(err);
@@ -75,7 +86,7 @@ async function getDailyDetail(req, res, next) {
         return next(new ResponseError('不存在该日报', 406));
       }
       let { content } = daily[0];
-      content = content.replace(/<[^>]+>/g, '');
+      // content = content.replace(/<[^>]+>/g, '');
 
       let dailyEvents = await query.sql(connection,
         `SELECT eventId, dailyRealTime FROM daily_events_${dailyMonthStr} WHERE dailyId = ${dailyId} AND userId = ${userId}`);

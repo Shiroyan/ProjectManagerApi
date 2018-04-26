@@ -23,35 +23,15 @@ async function getMonthReportUrl(req, res, next) {
 }
 
 
-function getFirstMonday(date) {
-  date = new Date(date);
-  while (date.getDay() !== 1) {
-    date.setDate(date.getDate() + 1);
-  }
-  return date;
-}
-
-function getWeekCountOfMonth(date) {
-  date = new Date(date);
-  let thisMonth = date.getMonth();
-  let firstMonday = getFirstMonday(date);
-  let count = 0;
-  while (firstMonday.getMonth() === thisMonth) {
-    count++;
-    firstMonday.setDate(firstMonday.getDate() + 7);
-  }
-  return count;
-}
-
 async function genExcelMonthly(req, res, next) {
   let { path } = req;
   let reportDate = req.query.date || new Date();
 
   reportDate = new Date(reportDate);
-  let weekCount = getWeekCountOfMonth(reportDate);  //  一个月有多少个星期
+  let weekCount = Date.getWeekCountOfMonth(reportDate);  //  一个月有多少个星期
 
   //  计算出一个月的开始和结束日期
-  let monthStart = getFirstMonday(reportDate);
+  let monthStart = Date.getFirstMonday(reportDate);
   let tempDate = new Date(monthStart);
   let monthEnd = Date.getWeekEnd(tempDate.setDate(tempDate.getDate() + (weekCount - 1) * 7));
   let monthStartStr = monthStart.format('yyyy-MM-dd hh:mm:ss');

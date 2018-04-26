@@ -101,4 +101,23 @@ module.exports = (function () {
       return new ResponseError('请确保起止日期都在同个星期', 406);
     }
   }
+  Date.getFirstMonday = (date) => {
+    date = new Date(date);
+    while (date.getDay() !== 1) {
+      date.setDate(date.getDate() + 1);
+    }
+    return date;
+  }
+
+  Date.getWeekCountOfMonth = (date) => {
+    date = new Date(date);
+    let thisMonth = date.getMonth();
+    let firstMonday = Date.getFirstMonday(date);
+    let count = 0;
+    while (firstMonday.getMonth() === thisMonth) {
+      count++;
+      firstMonday.setDate(firstMonday.getDate() + 7);
+    }
+    return count;
+  }
 })();
