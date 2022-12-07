@@ -14,7 +14,7 @@
     "cors": "^2.8.4",
     "debug": "~2.6.9",
     "exceljs": "^0.9.1",
-    "express": "~4.15.5",
+    "express": "~4.17.3",
     "file-stream-rotator": "^0.2.1",
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.1.1",
